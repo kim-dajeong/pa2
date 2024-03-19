@@ -21,8 +21,8 @@ using namespace std;
 
 /* Algorithm:
 	- Read from topology file
-		- Place into a datastructure
-	- Use an algorithm to get information out of the datastructure to place in routing table
+	- Place into a datastructure
+	- Use an algorithm to get information out of the datastructure to place in forwarding table
 	- 
 	- Implement changes to the existing topology
 
@@ -32,8 +32,8 @@ using namespace std;
 /// initial topology 
 unordered_map<int, unordered_map<int, int> > topology;
 
-/// routing table
-unordered_map<int, unordered_map<int, pair<int, int> > > routing_table; // src, des, nexthop? cost
+/// forwarding table
+unordered_map<int, unordered_map<int, pair<int, int> > > forwarding_table; // src, des, nexthop? cost
 
 set<int> nodes;
 
