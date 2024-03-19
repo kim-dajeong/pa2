@@ -34,8 +34,11 @@ using namespace std;
 /// initial topology 
 unordered_map<int, unordered_map<int, int> > topology;
 
+/// router nodes
+unordered_map<int, unordered_map<int, pair<int, int> > > nodes; // node, src, des, cost
+
 /// forwarding table
-unordered_map<int, unordered_map<int, pair<int, int> > > forwarding_table; // src, des, nexthop? cost
+unordered_map<int, unordered_map<int, pair<int, int> > > forwarding_table_0; // src, des, nexthop, cost
 
 set<int> nodes;
 
