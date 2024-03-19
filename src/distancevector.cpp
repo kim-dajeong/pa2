@@ -29,7 +29,11 @@ using namespace std;
 
 */
 
+/// initial topology 
 unordered_map<int, unordered_map<int, int> > topology;
+
+/// routing table
+unordered_map<int, unordered_map<int, pair<int, int> > > routing_table; // src, des, nexthop? cost
 
 set<int> nodes;
 
