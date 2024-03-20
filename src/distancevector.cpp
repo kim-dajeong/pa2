@@ -16,6 +16,9 @@
 #include <fstream>
 #include <set>
 #include <vector>
+#include <iostream>
+#include <sstream>
+#include <algorithm>
 
 using namespace std;
 
@@ -29,15 +32,58 @@ using namespace std;
 
 */
 
-/// initial topology 
+// global topology information
 unordered_map<int, unordered_map<int, int> > topology;
+
+/// initial topology 
+unordered_map<int, unordered_map<int, pair<int, int> > > node_topology;
 
 /// forwarding table
 unordered_map<int, unordered_map<int, pair<int, int> > > forwarding_table; // src, des, nexthop? cost
 
 set<int> nodes;
 
+// Function to parse a line containing source, destination, and cost
+bool parseLine(const std::string& line, int& src, int& dest, int& cost) {
 
+    std::istringstream iss(line);
+
+    if (!(iss >> src >> dest >> cost)) {
+        return false;  // Parsing failed
+    }
+	else {
+		return true;  // Parsing succeeded
+	}
+
+}
+
+void getTopology (string topologyFile, unordered_map<int, unordered_map<int, int> > &topology) {
+
+	// Declare an input file stream
+    std::ifstream globalTopology(topologyFile); // Assuming the file name is "topoin.txt"
+
+    // Check if the file is opened successfully
+    if (!globalTopology) {
+        std::cerr << "Error: Unable to open file!" << std::endl;
+        cout << "open file error!" << endl;
+    }
+
+	    int src, dest, cost;
+
+		while (globalTopology >> src >> dest >> cost) {
+
+			topology[src][dest] = cost;
+			topology[dest][src] = cost;
+
+			if (nodes.find(src) == nodes.end()) {
+				nodes.insert(src);
+			}
+			
+			if (nodes.find(dest) == nodes.end()) {
+				nodes.insert(dest);
+			}
+		}
+}
 
 /**
  * @brief main function 
