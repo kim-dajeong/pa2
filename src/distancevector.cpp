@@ -46,7 +46,7 @@ set<int> nodes;
 // Function to parse a line containing source, destination, and cost
 bool parseLine(const std::string& line, int& src, int& dest, int& cost) {
 
-    std::istringstream iss(line);
+    istringstream iss(line);
 
     if (!(iss >> src >> dest >> cost)) {
         return false;  // Parsing failed
@@ -78,7 +78,7 @@ void getTopology (string topologyFile, unordered_map<int, unordered_map<int, int
 			if (nodes.find(src) == nodes.end()) {
 				nodes.insert(src);
 			}
-			
+
 			if (nodes.find(dest) == nodes.end()) {
 				nodes.insert(dest);
 			}
