@@ -60,7 +60,7 @@ bool parseLine(const std::string& line, int& src, int& dest, int& cost) {
 void getTopology (string topologyFile, unordered_map<int, unordered_map<int, int> > &topology) {
 
 	// Declare an input file stream
-    std::ifstream globalTopology(topologyFile); // Assuming the file name is "topoin.txt"
+    std::ifstream globalTopology(topologyFile); 
 
     // Check if the file is opened successfully
     if (!globalTopology) {
