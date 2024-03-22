@@ -44,7 +44,7 @@ unordered_map<int, unordered_map<int, pair<int, int> > > forwarding_table; // sr
 set<int> nodes;
 
 // Function to parse a line containing source, destination, and cost
-bool parseLine(const std::string& line, int& src, int& dest, int& cost) {
+bool parseLine(const string& line, int& src, int& dest, int& cost) {
 
     istringstream iss(line);
 
@@ -60,11 +60,11 @@ bool parseLine(const std::string& line, int& src, int& dest, int& cost) {
 void getTopology (string topologyFile, unordered_map<int, unordered_map<int, int> > &topology) {
 
 	// Declare an input file stream
-    std::ifstream globalTopology(topologyFile); 
+    ifstream globalTopology(topologyFile); 
 
     // Check if the file is opened successfully
     if (!globalTopology) {
-        std::cerr << "Error: Unable to open file!" << std::endl;
+        cerr << "Error: Unable to open file!" << endl;
         cout << "open file error!" << endl;
     }
 

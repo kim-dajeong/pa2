@@ -25,7 +25,7 @@ using namespace std;
 	- Read from topology file
 	- Place into a datastructure
 	- Use an algorithm to get information out of the datastructure to place in forwarding table
-	- 
+	- Write forwarding table output of each node to a file
 	- Implement changes to the existing topology
 
 
