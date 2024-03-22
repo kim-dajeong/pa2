@@ -28,21 +28,55 @@ using namespace std;
 	- Write forwarding table output of each node to a file
 	- Implement changes to the existing topology
 
+	Link State Flooding == A node has access to the topology file.
+		- Run djikestras on each node. 
+			-> On event of a change 
 
 */
 
 /// initial topology 
 unordered_map<int, unordered_map<int, int> > topology;
 
-/// router nodes
-unordered_map<int, unordered_map<int, pair<int, int> > > nodes; // node, src, des, cost
-
 /// forwarding table
-unordered_map<int, unordered_map<int, pair<int, int> > > forwarding_table_0; // src, des, nexthop, cost
+unordered_map<int, unordered_map<int, pair<int, int> > > forwarding_table; // src, des, nexthop, cost
 
 set<int> nodes;
 
+//reading from the topology file and saving to the address of topology
+void readTopology(string filename, unordered_map<int, unordered_map<int, int> > &topology){
+	ifstream topologyFile;
+	topologyFile.open(filename); 
+	if (!topologyFile) {
+        cerr << "Error: Unable to open file!\n";
+		exit(0);
+    }
 
+	int source, destination, cost;
+
+	while (topologyFile >> source >> destination >> cost) {
+		topology[source][destination] = cost;
+		topology[destination][source] = cost;
+
+		// Updates set of nodes
+		if (nodes.find(source) == nodes.end()) {
+			nodes.insert(source);
+		}
+
+		if (nodes.find(destination) == nodes.end()) {
+			nodes.insert(destination);
+		}
+	}
+
+	//closing the topology file
+	topologyFile.close();
+}
+
+// Run Djikestras shortest path algorithm to update the paths for every node using the unordered graph
+// Populate the forwarding table by running djikestras at every source node
+void runAlgorithm(unordered_map<int, unordered_map<int, int> > &topology, unordered_map<int, unordered_map<int, pair<int, int> > > &forwarding_table){
+	
+
+}
 
 /**
  * @brief main function 
@@ -54,6 +88,20 @@ set<int> nodes;
  * 
 */
 int main(int argc, char** argv){
+	
+	/// Testing ReadTopology it works fine!
+	/*
+	readTopology("topologyFile.txt", topology);
+	
+	cout << "Topology:" << endl;
+    for (auto& node : topology) {
+        cout << "Node " << node.first << ":" << endl;
+        for (auto& neighbor : node.second) {
+            cout << "  -> Node " << neighbor.first << ", Weight: " << neighbor.second << endl;
+        }
+    }
+	*/
+	
 	if (argc != 4) {
         printf("Usage: ./linkstate topofile messagefile changesfile\n");
         return -1;
@@ -62,5 +110,5 @@ int main(int argc, char** argv){
 	string topologyfile = argv[1];
     string messagefile = argv[2];
     string changesfile = argv[3];
-  
+
 }

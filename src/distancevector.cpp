@@ -25,8 +25,8 @@ using namespace std;
 /* Algorithm:
 	- Read from topology file
 	- Place into a datastructure
+	- only read from forwarding tables of neighbours and cycle through them multiple times
 	- Use an algorithm to get information out of the datastructure to place in forwarding table
-	- 
 	- Implement changes to the existing topology
 
 
