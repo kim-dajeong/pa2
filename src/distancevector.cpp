@@ -22,14 +22,14 @@
 
 using namespace std;
 
+#define inf INT_MAX
+
 /* Algorithm:
 	- Read from topology file
 	- Place into a datastructure
 	- only read from forwarding tables of neighbours and cycle through them multiple times
 	- Use an algorithm to get information out of the datastructure to place in forwarding table
 	- Implement changes to the existing topology
-
-
 */
 
 // global topology information
@@ -57,33 +57,108 @@ bool parseLine(const string& line, int& src, int& dest, int& cost) {
 
 }
 
-void getTopology (string topologyFile, unordered_map<int, unordered_map<int, int> > &topology) {
+/**
+ * @brief main function 
+ * 
+ * @param 
+ * @param 
+ * 
+ * @return 0
+ * 
+*/
+/// Read from the topology file and save information to unordered_map topology and ordered_set nodes
+void readTopology(string filename, unordered_map<int, unordered_map<int, int>>&topology, set<int>&nodes){
 
-	// Declare an input file stream
-    ifstream globalTopology(topologyFile); 
+	ifstream topologyFile;
 
-    // Check if the file is opened successfully
-    if (!globalTopology) {
-        cerr << "Error: Unable to open file!" << endl;
-        cout << "open file error!" << endl;
+	topologyFile.open(filename); 
+
+	if (!topologyFile) {
+        cerr << "Error: Unable to open file!\n";
+		exit(0);
+
     }
 
-	    int src, dest, cost;
+	int source, destination, cost;
 
-		while (globalTopology >> src >> dest >> cost) {
+	/// Iterate through all lines in topologyFile and read for source, destination, and cost
+	while (topologyFile >> source >> destination >> cost) {
 
-			topology[src][dest] = cost;
-			topology[dest][src] = cost;
+		/// Update new topology connection and cost in both directions
+		topology[source][destination] = cost;
+		topology[destination][source] = cost;
 
-			if (nodes.find(src) == nodes.end()) {
-				nodes.insert(src);
-			}
+		/// Check if source node exists in set
+		if (nodes.find(source) == nodes.end()) {
 
-			if (nodes.find(dest) == nodes.end()) {
-				nodes.insert(dest);
-			}
+			/// If it doesn't exist, insert into ordered set
+			nodes.insert(source);
 		}
+
+		/// Check if destination node exists in set
+		if (nodes.find(destination) == nodes.end()) {
+
+			/// If it doesn't exist, insert into ordered set
+			nodes.insert(destination);
+
+		}
+	}
+
+	/// Close the file
+	topologyFile.close();
+
 }
+
+// Function to check if a connection exists in the topology
+bool connectionExists(int source, int destination, unordered_map<int, unordered_map<int, int>>&topology) {
+    auto i = topology.find(source);
+    if (i != topology.end()) {
+        auto j = i->second.find(destination);
+        if (j != i->second.end()) {
+            return true; // Connection exists
+        }
+    }
+    return false; // Connection does not exist
+}
+
+
+void tableSetup(unordered_map<int, unordered_map<int, int>>&topology, unordered_map<int, unordered_map<int, int>>&forwarding_table, set<int>&nodes){
+    // Iterate over each node
+    for (int source : nodes) {
+        for (int destination : nodes) {
+            if (source == destination) {
+                forwarding_table[source][destination] = 0; // Set direct connection cost to 0
+            } else {
+                if (!connectionExists(source, destination, topology)) {
+                    forwarding_table[source][destination] = inf; // Set non-existent connection cost to infinity
+                } else {
+					if (connectionExists(source, destination, topology)) {
+                    forwarding_table[source][destination] = topology[source][destination]; // Give cost to nodes with a connection
+                	}
+				}
+
+            }
+        }
+    }
+}
+
+// Function to populate forwarding tables using Bellman-Ford algorithm
+void populateForwardingTables(unordered_map<int, unordered_map<int, int>> &topology, unordered_map<int, unordered_map<int, int>> &forwarding_table, set<int> &nodes) {
+    // Initialize forwarding tables
+    tableSetup(topology, forwarding_table, nodes);
+
+    // Run Bellman-Ford algorithm for each node
+    for (int k = 0; k < nodes.size(); ++k) {
+        for (int source : nodes) {
+            for (int destination : nodes) {
+                if (topology[source].find(destination) != topology[source].end() && forwarding_table[source][k] + topology[source][destination] < forwarding_table[source][destination]) {
+                    forwarding_table[source][destination] = forwarding_table[source][k] + topology[source][destination];
+                }
+            }
+        }
+    }
+}
+
 
 /**
  * @brief main function 
