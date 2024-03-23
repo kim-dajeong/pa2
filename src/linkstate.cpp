@@ -85,7 +85,7 @@ void readTopology(string filename, unordered_map<int, unordered_map<int, int>>&t
 
 // Run Djikestras shortest path algorithm to update the paths for every node using the unordered graph
 // Populate the forwarding table by running djikestras at every source node
-void runAlgorithm(unordered_map<int, unordered_map<int, int> > &topology, unordered_map<int, unordered_map<int, pair<int, int> > > &forwarding_table, set<int>&nodes){
+void runAlgorithm(unordered_map<int, unordered_map<int, int> > &topology, unordered_map<int, unordered_map<int, pair<int, int> > > &routing_table, set<int>&nodes){
 	
 	int numNodes = nodes.size();
 	unordered_map<int, int> routing_table;
@@ -226,7 +226,7 @@ int main(int argc, char** argv){
 	unordered_map<int, unordered_map<int, int> > topology;
 
 	/// forwarding table
-	unordered_map<int, unordered_map<int, pair<int, int> > > forwarding_table; // src, des, nexthop, cost
+	unordered_map<int, unordered_map<int, pair<int, int> > > routing_table; // src, des, nexthop, cost
 
 	unordered_map<int, unordered_map<int, unordered_map<int, int> > > topologyPerNode;
 
@@ -236,7 +236,7 @@ int main(int argc, char** argv){
 	readTopology(topologyfile, topology, nodes);
 
 	/// Run Dijkstra's algorithm on all nodes and get forwarding tables
-	runAlgorithm(topology, forwarding_table, nodes);
+	runAlgorithm(topology, routing_table, nodes);
 
 	/// Get topology changes
 	applyChanges(changesfile, topologyPerNode);
