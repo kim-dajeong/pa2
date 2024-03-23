@@ -142,6 +142,23 @@ void tableSetup(unordered_map<int, unordered_map<int, int>>&topology, unordered_
     }
 }
 
+// Function to populate forwarding tables using Bellman-Ford algorithm
+void populateForwardingTables(unordered_map<int, unordered_map<int, int>> &topology, unordered_map<int, unordered_map<int, int>> &forwarding_table, set<int> &nodes) {
+    // Initialize forwarding tables
+    tableSetup(topology, forwarding_table, nodes);
+
+    // Run Bellman-Ford algorithm for each node
+    for (int k = 0; k < nodes.size(); ++k) {
+        for (int source : nodes) {
+            for (int destination : nodes) {
+                if (topology[source].find(destination) != topology[source].end() && forwarding_table[source][k] + topology[source][destination] < forwarding_table[source][destination]) {
+                    forwarding_table[source][destination] = forwarding_table[source][k] + topology[source][destination];
+                }
+            }
+        }
+    }
+}
+
 
 /**
  * @brief main function 
