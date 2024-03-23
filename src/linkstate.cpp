@@ -17,6 +17,9 @@
 #include <set>
 #include <vector>
 #include <sstream>
+#include <unordered_set>
+#include <queue>
+#include <limits>
 
 
 using namespace std;
@@ -34,49 +37,129 @@ using namespace std;
 
 */
 
-/// initial topology 
-unordered_map<int, unordered_map<int, int> > topology;
 
-/// forwarding table
-unordered_map<int, unordered_map<int, pair<int, int> > > forwarding_table; // src, des, nexthop, cost
+/// Read from the topology file and save information to unordered_map topology and ordered_set nodes
+void readTopology(string filename, unordered_map<int, unordered_map<int, int>>&topology, set<int>&nodes){
 
-set<int> nodes;
-
-//reading from the topology file and saving to the address of topology
-void readTopology(string filename, unordered_map<int, unordered_map<int, int> > &topology){
 	ifstream topologyFile;
+
 	topologyFile.open(filename); 
+
 	if (!topologyFile) {
+
         cerr << "Error: Unable to open file!\n";
 		exit(0);
+
     }
 
 	int source, destination, cost;
 
+	/// Iterate through all lines in topologyFile and read for source, destination, and cost
 	while (topologyFile >> source >> destination >> cost) {
+
+		/// Update new topology connection and cost in both directions
 		topology[source][destination] = cost;
 		topology[destination][source] = cost;
 
-		// Updates set of nodes
+		/// Check if source node exists in set
 		if (nodes.find(source) == nodes.end()) {
+
+			/// If it doesn't exist, insert into ordered set
 			nodes.insert(source);
 		}
 
+		/// Check if destination node exists in set
 		if (nodes.find(destination) == nodes.end()) {
+
+			/// If it doesn't exist, insert into ordered set
 			nodes.insert(destination);
+
 		}
 	}
 
-	//closing the topology file
+	/// Close the file
 	topologyFile.close();
+
 }
+
 
 // Run Djikestras shortest path algorithm to update the paths for every node using the unordered graph
 // Populate the forwarding table by running djikestras at every source node
-void runAlgorithm(unordered_map<int, unordered_map<int, int> > &topology, unordered_map<int, unordered_map<int, pair<int, int> > > &forwarding_table){
+void runAlgorithm(unordered_map<int, unordered_map<int, int> > &topology, unordered_map<int, unordered_map<int, pair<int, int> > > &forwarding_table, set<int>&nodes){
 	
+	int numNodes = nodes.size();
+	unordered_map<int, int> routing_table;
+
+	for (int n; n < numNodes - 1; n++) {
+
+		for (int node : nodes) {
+
+		dijkstra(topology, routing_table, node);
+
+		}
+
+	}
+	
+}
+
+// Custom comparator for priority queue
+struct CompareDist {
+    bool operator()(const pair<int, int>& lhs, const pair<int, int>& rhs) const {
+        return lhs.second > rhs.second; // Compare distances
+    }
+};
+
+
+/// Dijkstra's Algorithm
+void dijkstra(unordered_map<int, unordered_map<int, int> > &topology, unordered_map<int, int> &routing_table, int start){
+
+	unordered_map<int, int> dist;
+    unordered_map<int, int> prev;
+    priority_queue<pair<int, int>, vector<pair<int, int>>, CompareDist> pq;
+
+    /// Initialize distances
+    for (const auto& pair : topology) {
+
+        int node = pair.first;
+        dist[node] = numeric_limits<int>::max();
+        prev[node] = -1;
+
+    }
+
+    dist[start] = 0;
+    pq.push({start, 0});
+
+    while (!pq.empty()) {
+
+        int u = pq.top().first;
+        int u_dist = pq.top().second;
+        pq.pop();
+
+        /// Skip if there already exists a better path
+        if (u_dist > dist[u]) continue;
+
+        for (const auto& neighbor : topology.at(u)) {
+
+            int v = neighbor.first;
+            int weight = neighbor.second;
+
+            int alt = dist[u] + weight;
+
+            if (alt < dist[v]) {
+
+                dist[v] = alt;
+                prev[v] = u;
+                pq.push({v, alt});
+
+            }
+        }
+    }
+
+    /// Store shortest distances in the routing_table for the node
+    routing_table = dist;
 
 }
+
 
 /**
  * @brief main function 
@@ -110,5 +193,24 @@ int main(int argc, char** argv){
 	string topologyfile = argv[1];
     string messagefile = argv[2];
     string changesfile = argv[3];
+
+	/// initial topology 
+	unordered_map<int, unordered_map<int, int> > topology;
+
+	/// forwarding table
+	unordered_map<int, unordered_map<int, pair<int, int> > > forwarding_table; // src, des, nexthop, cost
+
+	set<int> nodes;
+
+	/// Save initial topology to unordered_map
+	readTopology(topologyfile, topology, nodes);
+
+	/// Run Dijkstra's algorithm on all nodes and get forwarding tables
+	runAlgorithm(topology, forwarding_table, nodes);
+
+	/// Get topology changes
+	changeTopology();
+
+	/// Save output
 
 }
