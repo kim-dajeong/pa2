@@ -160,6 +160,34 @@ void dijkstra(unordered_map<int, unordered_map<int, int> > &topology, unordered_
 
 }
 
+/// Converge topology
+void converge(int changedsrc, int changeddest, unordered_map<int, unordered_map<int, unordered_map<int, int> > &topologyPerNode) {
+
+
+
+}
+
+
+/// apply changes from changesfile and redo calculations
+void applyChanges(string changesfile, unordered_map<int, unordered_map<int, unordered_map<int, int> > &topologyPerNode) {
+
+	ifstream change(changesfile);
+
+    int src, dest, cost;
+
+    if (change.is_open()) {
+
+        while (change >> src >> dest >> cost) {
+
+            topology[src][dest] = cost;
+            topology[dest][src] = cost;
+
+            converge(src, dest, topologyPerNode);
+
+        }
+    }
+}
+
 
 /**
  * @brief main function 
@@ -200,6 +228,8 @@ int main(int argc, char** argv){
 	/// forwarding table
 	unordered_map<int, unordered_map<int, pair<int, int> > > forwarding_table; // src, des, nexthop, cost
 
+	unordered_map<int, unordered_map<int, unordered_map<int, int> > > topologyPerNode;
+
 	set<int> nodes;
 
 	/// Save initial topology to unordered_map
@@ -209,7 +239,7 @@ int main(int argc, char** argv){
 	runAlgorithm(topology, forwarding_table, nodes);
 
 	/// Get topology changes
-	changeTopology();
+	applyChanges(changesfile, topologyPerNode);
 
 	/// Save output
 
