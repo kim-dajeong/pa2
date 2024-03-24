@@ -32,17 +32,6 @@ using namespace std;
 	- Implement changes to the existing topology
 */
 
-// global topology information
-unordered_map<int, unordered_map<int, int> > topology;
-
-/// initial topology 
-unordered_map<int, unordered_map<int, pair<int, int> > > node_topology;
-
-/// forwarding table
-unordered_map<int, unordered_map<int, pair<int, int> > > forwarding_table; // src, des, nexthop? cost
-
-set<int> nodes;
-
 // Function to parse a line containing source, destination, and cost
 bool parseLine(const string& line, int& src, int& dest, int& cost) {
 
@@ -122,28 +111,26 @@ bool connectionExists(int source, int destination, unordered_map<int, unordered_
 }
 
 
-void tableSetup(unordered_map<int, unordered_map<int, int>>&topology, unordered_map<int, unordered_map<int, int>>&forwarding_table, set<int>&nodes){
+// Function to setup initial forwarding tables
+void tableSetup(unordered_map<int, unordered_map<int, int>> &topology, unordered_map<int, unordered_map<int, pair<int, int>>> &forwarding_table, set<int> &nodes) {
     // Iterate over each node
     for (int source : nodes) {
         for (int destination : nodes) {
             if (source == destination) {
-                forwarding_table[source][destination] = 0; // Set direct connection cost to 0
+                forwarding_table[source][destination] = make_pair(0, destination); // Set direct connection cost to 0 and next hop to destination
             } else {
                 if (!connectionExists(source, destination, topology)) {
-                    forwarding_table[source][destination] = inf; // Set non-existent connection cost to infinity
+                    forwarding_table[source][destination] = make_pair(inf, -1); // Set non-existent connection cost to infinity and next hop to -1
                 } else {
-					if (connectionExists(source, destination, topology)) {
-                    forwarding_table[source][destination] = topology[source][destination]; // Give cost to nodes with a connection
-                	}
-				}
-
+                    forwarding_table[source][destination] = make_pair(topology[source][destination], destination); // Give cost to nodes with a connection and set next hop
+                }
             }
         }
     }
 }
 
 // Function to populate forwarding tables using Bellman-Ford algorithm
-void populateForwardingTables(unordered_map<int, unordered_map<int, int>> &topology, unordered_map<int, unordered_map<int, int>> &forwarding_table, set<int> &nodes) {
+void populateForwardingTables(unordered_map<int, unordered_map<int, int>> &topology, unordered_map<int, unordered_map<int, pair<int, int>>> &forwarding_table, set<int> &nodes) {
     // Initialize forwarding tables
     tableSetup(topology, forwarding_table, nodes);
 
@@ -151,8 +138,9 @@ void populateForwardingTables(unordered_map<int, unordered_map<int, int>> &topol
     for (int k = 0; k < nodes.size(); ++k) {
         for (int source : nodes) {
             for (int destination : nodes) {
-                if (topology[source].find(destination) != topology[source].end() && forwarding_table[source][k] + topology[source][destination] < forwarding_table[source][destination]) {
-                    forwarding_table[source][destination] = forwarding_table[source][k] + topology[source][destination];
+                if (topology[source].find(destination) != topology[source].end() && forwarding_table[source][k].first + topology[source][destination] < forwarding_table[source][destination].first) {
+                    forwarding_table[source][destination].first = forwarding_table[source][k].first + topology[source][destination];
+                    forwarding_table[source][destination].second = forwarding_table[source][k].second; // Update next hop
                 }
             }
         }
@@ -178,5 +166,34 @@ int main(int argc, char** argv){
 	string topologyfile = argv[1];
     string messagefile = argv[2];
     string changesfile = argv[3];
+
+	// global topology information
+	unordered_map<int, unordered_map<int, int> > topology;
+
+	/// forwarding table
+	unordered_map<int, unordered_map<int, pair<int, int> > > forwarding_table; // src, des, nexthop? cost
+
+	set<int> nodes;
+
+	// Populate forwarding tables using Bellman-Ford algorithm
+    populateForwardingTables(topology, forwarding_table, nodes);
+
+    // Output forwarding tables to files
+    for (auto& entry : forwarding_table) {
+        int source = entry.first;
+        ofstream outFile("forwarding_table_" + to_string(source) + ".txt");
+        if (outFile.is_open()) {
+            for (auto& item : entry.second) {
+                outFile << "Destination: " << item.first << ", Cost: " << item.second.first << ", Next hop: " << item.second.second << endl;
+            }
+            outFile.close();
+        } else {
+            cerr << "Unable to open file for writing!";
+            return 1;
+        }
+    }
+
+    return 0;
+
   
 }
