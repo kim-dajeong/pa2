@@ -175,25 +175,44 @@ int main(int argc, char** argv){
 
 	set<int> nodes;
 
+	//read from topology file
+	readTopology(topologyfile, topology, nodes);
+
 	// Populate forwarding tables using Bellman-Ford algorithm
     populateForwardingTables(topology, forwarding_table, nodes);
 
-    // Output forwarding tables to files
-    for (auto& entry : forwarding_table) {
-        int source = entry.first;
-        ofstream outFile("forwarding_table_" + to_string(source) + ".txt");
-        if (outFile.is_open()) {
-            for (auto& item : entry.second) {
-                outFile << "Destination: " << item.first << ", Cost: " << item.second.first << ", Next hop: " << item.second.second << endl;
-            }
-            outFile.close();
-        } else {
-            cerr << "Unable to open file for writing!";
-            return 1;
-        }
+	 // Output forwarding tables to files
+    ofstream outFile("forwarding_table.txt");
+    if (!outFile.is_open()) {
+        cerr << "Unable to open file for writing!" << endl;
+        return -1;
     }
 
-    return 0;
+    // Sort the entries in forwarding_table by source and destination
+    vector<pair<int, pair<int, int>>> sorted_sources;
+    for (auto& entry : forwarding_table) {
+        sorted_sources.emplace_back(entry.first, make_pair(0, 0));
+    }
+    sort(sorted_sources.begin(), sorted_sources.end());
 
-  
+    for (auto& entry : sorted_sources) {
+    int source = entry.first;
+
+    // Iterate over all possible destinations
+    for (int destination : nodes) {
+        int cost = (destination == source) ? 0 : inf;
+        int next_hop = (destination == source) ? destination : -1;
+
+        if (forwarding_table[source].find(destination) != forwarding_table[source].end()) {
+            cost = forwarding_table[source][destination].first;
+            next_hop = forwarding_table[source][destination].second;
+        }
+
+        outFile << "Source: " << source << ", Destination: " << destination
+                << ", Cost: " << cost << ", Next hop: " << next_hop << endl;
+    }
+}
+
+    outFile.close();
+    return 0;
 }
