@@ -197,21 +197,16 @@ int main(int argc, char** argv){
 
     for (auto& entry : sorted_sources) {
     int source = entry.first;
+    	// Iterate over all possible destinations
+    	for (int destination : nodes) {
+			int cost, next_hop; 
+			cost = forwarding_table[source][destination].first;
+        	next_hop = forwarding_table[source][destination].second;
 
-    // Iterate over all possible destinations
-    for (int destination : nodes) {
-        int cost = (destination == source) ? 0 : inf;
-        int next_hop = (destination == source) ? destination : -1;
-
-        if (forwarding_table[source].find(destination) != forwarding_table[source].end()) {
-            cost = forwarding_table[source][destination].first;
-            next_hop = forwarding_table[source][destination].second;
-        }
-
-        outFile << "Source: " << source << ", Destination: " << destination
+        	outFile << "Source: " << source << ", Destination: " << destination
                 << ", Cost: " << cost << ", Next hop: " << next_hop << endl;
-    }
-}
+    	}
+	}
 
     outFile.close();
     return 0;
