@@ -169,10 +169,11 @@ void decentralizedBellmanFord(unordered_map<int, unordered_map<int, int>> &topol
 	}
 }
 
-/*
+
 void message(string filename, 
             unordered_map<int, unordered_map<int, pair<int, int>>> &forwarding_table){
     
+    ofstream outFile;
     ifstream messageFile;
 	messageFile.open(filename); 
 	if (!messageFile) {
@@ -180,7 +181,7 @@ void message(string filename,
 		exit(0);
     }
 
-    int source, destination, cost, hop;
+    int source, destination, cost;
     string line;
     while(getline(messageFile, line)){
         stringstream ss(line);
@@ -192,26 +193,19 @@ void message(string filename,
         getline(ss, text);
         
         cost = forwarding_table[source][destination].first;
-        hop = source; 
+        
         if(cost == -999){
             outFile << "from " << source << "to " << destination << "cost infinite hops unreachable message " << text << endl;
-            break;
         }
         
-        outFile << "from " << source << "to " << destination << "cost " << cost << "hops ";
+        //implement hops!
 
-        while(hop != destination){
-            outFile << hop << " ";
-            hop = forwarding_table[hop][destination].second;
-        }
-        
-        
-        outFile << "message " << text << endl;
+        outFile << "from " << source << "to " << destination << "cost " << cost << "message " << text << endl;
         
     }
     messageFile.close(); // Close file after reading
 }
-*/
+
 
 /**
  * @brief main function 
@@ -274,43 +268,7 @@ int main(int argc, char** argv){
 	}
 
     /// send message
-     ifstream messageFile;
-	messageFile.open(messagefile); 
-	if (!messageFile) {
-        cerr << "Error: Unable to open messageFile!\n";
-		exit(0);
-    }
-
-    int source, destination, cost, hop;
-    string line;
-    while(getline(messageFile, line)){
-        stringstream ss(line);
-        if (!(ss >> source >> destination)) {
-            cerr << "Error reading source and destination!\n";
-            continue; // Skip to next iteration
-        }
-        string text;
-        getline(ss, text);
-        
-        cost = forwarding_table[source][destination].first;
-        hop = source; 
-        if(cost == -999){
-            outFile << "from " << source << " to " << destination << " cost infinite hops unreachable message " << text << endl;
-            break;
-        }
-        
-        outFile << "from " << source << " to " << destination << " cost " << cost << " hops ";
-
-        while(hop != destination){
-            outFile << hop << " ";
-            hop = forwarding_table[hop][destination].second;
-        }
-        
-        
-        outFile << "message" << text << endl;
-        
-    }
-    messageFile.close(); // Close file after reading
+    message(messagefile, forwarding_table);
 
     /// apply changes
     ifstream changefile;
@@ -360,47 +318,11 @@ int main(int argc, char** argv){
     	    }
 	    }
 
-         ifstream messageFile;
-	messageFile.open(messagefile); 
-	if (!messageFile) {
-        cerr << "Error: Unable to open messageFile!\n";
-		exit(0);
-    }
-
-    int source, destination, cost, hop;
-    string line;
-    while(getline(messageFile, line)){
-        stringstream ss(line);
-        if (!(ss >> source >> destination)) {
-            cerr << "Error reading source and destination!\n";
-            continue; // Skip to next iteration
-        }
-        string text;
-        getline(ss, text);
-        
-        cost = forwarding_table[source][destination].first;
-        hop = source; 
-        if(cost == -999){
-            outFile << "from " << source << " to " << destination << " cost infinite hops unreachable message " << text << endl;
-            break;
-        }
-        
-        outFile << "from " << source << "to " << destination << " cost " << cost << " hops ";
-
-        while(hop != destination){
-            outFile << hop << " ";
-            hop = forwarding_table[hop][destination].second;
-        }
-        
-        
-        outFile << "message" << text << endl;
-        
-    }
-    messageFile.close(); // Close file after reading
+        message(messagefile, forwarding_table);
 
     }
 
-    changefile.close();
+
     outFile.close();
     return 0;
 }
