@@ -171,9 +171,9 @@ void decentralizedBellmanFord(unordered_map<int, unordered_map<int, int>> &topol
 
 
 void message(string filename, 
+            ofstream &outFile, 
             unordered_map<int, unordered_map<int, pair<int, int>>> &forwarding_table){
     
-    ofstream outFile;
     ifstream messageFile;
 	messageFile.open(filename); 
 	if (!messageFile) {
@@ -195,12 +195,12 @@ void message(string filename,
         cost = forwarding_table[source][destination].first;
         
         if(cost == -999){
-            outFile << "from " << source << "to " << destination << "cost infinite hops unreachable message " << text << endl;
+            outFile << "from " << source << " to " << destination << " cost infinite hops unreachable message" << text << endl;
         }
         
         //implement hops!
 
-        outFile << "from " << source << "to " << destination << "cost " << cost << "message " << text << endl;
+        outFile << "from " << source << " to " << destination << " cost " << cost << " message" << text << endl;
         
     }
     messageFile.close(); // Close file after reading
@@ -268,7 +268,7 @@ int main(int argc, char** argv){
 	}
 
     /// send message
-    message(messagefile, forwarding_table);
+    message(messagefile, outFile, forwarding_table);
 
     /// apply changes
     ifstream changefile;
@@ -318,7 +318,7 @@ int main(int argc, char** argv){
     	    }
 	    }
 
-        message(messagefile, forwarding_table);
+        message(messagefile, outFile, forwarding_table);
 
     }
 
