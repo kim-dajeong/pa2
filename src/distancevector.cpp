@@ -133,7 +133,7 @@ void decentralizedBellmanFord(unordered_map<int, unordered_map<int, int>> &topol
     tableSetup(topology, forwarding_table, nodes);
 	
 	/// Run Bellman Ford Size-1 Times
-	for(int i; i < nodes.size()-1; i++){
+	for(int i; i < nodes.size(); i++){
 	// Iterate over each node
     for (int node : nodes) {
         // Iterate over each destination
@@ -161,8 +161,11 @@ void decentralizedBellmanFord(unordered_map<int, unordered_map<int, int>> &topol
                     }
                 }
             }
+
+            if(node != destination){
             // Update forwarding table entry
             forwarding_table[node][destination] = make_pair(cost, nexthop);
+            }
         }
     }
 	}
@@ -224,7 +227,7 @@ int main(int argc, char** argv){
 			cost = forwarding_table[source][destination].first;
         	next_hop = forwarding_table[source][destination].second;
 
-        	outFile  << destination << " " << cost << " " << next_hop << endl;
+        	outFile << "Node:" << source << " " << destination << " " << cost << " " << next_hop << endl;
     	}
 	}
 
