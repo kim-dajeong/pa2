@@ -180,8 +180,8 @@ void decentralizedBellmanFord(unordered_map<int, unordered_map<int, int>> &topol
 */
 int main(int argc, char** argv){
 	if (argc != 4) {
-        printf("Usage: ./linkstate topofile messagefile changesfile\n");
-        return -1;
+        printf("usage: you need more args (try again)\n\n");
+        exit(1);
     }
 
 	string topologyfile = argv[1];
