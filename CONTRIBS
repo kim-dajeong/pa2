@@ -1,8 +1,8 @@
 Dajeong Kim
-    - Implemented the receiver file I/O control logic code
+    - 
 
 Ana Bandari
-    - Implemented the sender file I/O control logic code
+    - 
 
 Collaborative Tasks
     - Flowcharted and planned algorithms together
@@ -10,4 +10,4 @@ Collaborative Tasks
     - Tested the code individually 
 
 
-We both have a good understanding of how each component works individually as well as how the come together to send data reliably. 
+We both have a good understanding of how each routing algorithm works and how they differ from eachother.
