@@ -227,7 +227,8 @@ int main(int argc, char** argv){
 			cost = forwarding_table[source][destination].first;
         	next_hop = forwarding_table[source][destination].second;
 
-        	outFile << "Node:" << source << " " << destination << " " << cost << " " << next_hop << endl;
+            // debug outFile << "Node:" << source << " " << destination << " " << cost << " " << next_hop << endl;
+        	outFile << destination << " " << cost << " " << next_hop << endl;
     	}
 	}
 
