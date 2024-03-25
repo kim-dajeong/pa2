@@ -66,14 +66,12 @@ void readTopology(string filename, unordered_map<int, unordered_map<int, int>>&t
 
 		/// Check if source node exists in set
 		if (nodes.find(source) == nodes.end()) {
-
 			/// If it doesn't exist, insert into ordered set
 			nodes.insert(source);
 		}
 
 		/// Check if destination node exists in set
 		if (nodes.find(destination) == nodes.end()) {
-
 			/// If it doesn't exist, insert into ordered set
 			nodes.insert(destination);
 
@@ -172,6 +170,43 @@ void decentralizedBellmanFord(unordered_map<int, unordered_map<int, int>> &topol
 }
 
 
+void message(string filename, 
+            unordered_map<int, unordered_map<int, pair<int, int>>> &forwarding_table){
+    
+    ofstream outFile;
+    ifstream messageFile;
+	messageFile.open(filename); 
+	if (!messageFile) {
+        cerr << "Error: Unable to open messageFile!\n";
+		exit(0);
+    }
+
+    int source, destination, cost;
+    string line;
+    while(getline(messageFile, line)){
+        stringstream ss(line);
+        if (!(ss >> source >> destination)) {
+            cerr << "Error reading source and destination!\n";
+            continue; // Skip to next iteration
+        }
+        string text;
+        getline(ss, text);
+        
+        cost = forwarding_table[source][destination].first;
+        
+        if(cost == -999){
+            outFile << "from " << source << "to " << destination << "cost infinite hops unreachable message " << text << endl;
+        }
+        
+        //implement hops!
+
+        outFile << "from " << source << "to " << destination << "cost " << cost << "message " << text << endl;
+        
+    }
+    messageFile.close(); // Close file after reading
+}
+
+
 /**
  * @brief main function 
  * 
@@ -228,9 +263,65 @@ int main(int argc, char** argv){
         	next_hop = forwarding_table[source][destination].second;
 
             // debug outFile << "Node:" << source << " " << destination << " " << cost << " " << next_hop << endl;
-        	outFile << destination << " " << cost << " " << next_hop << endl;
+        	outFile << destination << " " << next_hop << " " << cost << endl;
     	}
 	}
+
+    /// send message
+    message(messagefile, forwarding_table);
+
+    /// apply changes
+    ifstream changefile;
+
+	changefile.open(changesfile); 
+
+	if (!changefile) {
+        cerr << "Error: Unable to open file!\n";
+		exit(0);
+    }
+    int newSource, newDestination, newCost;
+    while (changefile >> newSource >> newDestination >> newCost){
+        topology[newSource][newDestination] = newCost;
+        topology[newDestination][newSource] = newCost;
+
+        /// Check if source node exists in set
+		if (nodes.find(newSource) == nodes.end()) {
+			/// If it doesn't exist, insert into ordered set
+			nodes.insert(newSource);
+		}
+
+		/// Check if destination node exists in set
+		if (nodes.find(newDestination) == nodes.end()) {
+			/// If it doesn't exist, insert into ordered set
+			nodes.insert(newDestination);
+		}
+        
+        decentralizedBellmanFord(topology, forwarding_table, nodes);
+
+        // Sort the entries in forwarding_table by source and destination
+        vector<pair<int, pair<int, int>>> sorted_sources;
+        for (auto& entry : forwarding_table) {
+            sorted_sources.emplace_back(entry.first, make_pair(0, 0));
+        }
+        sort(sorted_sources.begin(), sorted_sources.end());
+
+        for (auto& entry : sorted_sources) {
+        int source = entry.first;
+    	    // Iterate over all possible destinations
+    	    for (int destination : nodes) {
+			    int cost, next_hop; 
+			    cost = forwarding_table[source][destination].first;
+        	    next_hop = forwarding_table[source][destination].second;
+
+                // debug outFile << "Node:" << source << " " << destination << " " << cost << " " << next_hop << endl;
+        	    outFile << destination << " " << next_hop << " " << cost << endl;
+    	    }
+	    }
+
+        message(messagefile, forwarding_table);
+
+    }
+
 
     outFile.close();
     return 0;
