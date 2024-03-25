@@ -19,12 +19,12 @@
 #include <iostream>
 #include <sstream>
 #include <algorithm>
-#include <limits> // for INT_MAX
-#include <utility> // for std::pair
+#include <limits> 
+#include <utility> 
 
 using namespace std;
 
-#define inf 20000
+#define inf 2000000000
 
 /* Algorithm:
 	- Read from topology file
@@ -107,7 +107,7 @@ void tableSetup(unordered_map<int, unordered_map<int, int>> &topology, unordered
                 forwarding_table[source][destination] = make_pair(0, destination); // Set direct connection cost to 0 and next hop to destination
             } else {
                 if (!connectionExists(source, destination, topology)) {
-                    forwarding_table[source][destination] = make_pair(inf, -999); // Set non-existent connection cost to infinity and next hop to -1
+                    forwarding_table[source][destination] = make_pair(inf, -999); // Set non-existent connection cost to infinity and next hop to -999
                 } else {
                     forwarding_table[source][destination] = make_pair(topology[source][destination], destination); // Give cost to nodes with a connection and set next hop
                 }
@@ -203,7 +203,7 @@ int main(int argc, char** argv){
     decentralizedBellmanFord(topology, forwarding_table, nodes);
 
 	 // Output forwarding tables to files
-    ofstream outFile("forwarding_table.txt");
+    ofstream outFile("output.txt");
     if (!outFile.is_open()) {
         cerr << "Unable to open file for writing!" << endl;
         return -1;
@@ -224,8 +224,7 @@ int main(int argc, char** argv){
 			cost = forwarding_table[source][destination].first;
         	next_hop = forwarding_table[source][destination].second;
 
-        	outFile << "Source: " << source << ", Destination: " << destination
-                << ", Cost: " << cost << ", Next hop: " << next_hop << endl;
+        	outFile  << destination << " " << cost << " " << next_hop << endl;
     	}
 	}
 
