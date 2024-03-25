@@ -1,14 +1,13 @@
 /**
- * @file distancevector.cpp
- *  @brief 
+ *  @file distancevector.cpp
+ *  @brief Uses distance vector routing protocol to update a forwarding table. 
  *
  *  @author Ana Bandari (anabandari)
  *  @author Dajeong Kim (dkim2)
  * 
- *  @bug 
+ *  @bug None known at this time. 
  * 
  */
-
 
 /*   Includes   */
 #include <iostream>
@@ -24,37 +23,29 @@
 
 using namespace std;
 
+/// Setting infinity to be some arbitrarily large number 
 #define inf 2000000000
 
-/* Algorithm:
-	- Read from topology file
-	- Place into a datastructure
-	- only read from forwarding tables of neighbours and cycle through them multiple times
-	- Use an algorithm to get information out of the datastructure to place in forwarding table
-	- Implement changes to the existing topology
-*/
-
 /**
- * @brief main function 
+ * @brief Reads from the topology file and writes it to an unordered map and a set of nodes for easy reference
  * 
- * @param 
- * @param 
+ * @param filename The name of the topology file i.e. "topologyFile.txt"
+ * @param topology Topology map, an unordered map containing information from the topologyFile for easy reference
+ * @param nodes A set of all the nodes present in the network
  * 
- * @return 0
+ * @return void
  * 
 */
-/// Read from the topology file and save information to unordered_map topology and ordered_set nodes
 void readTopology(string filename, unordered_map<int, unordered_map<int, int>>&topology, set<int>&nodes){
-
+    /// File input setup
 	ifstream topologyFile;
-
 	topologyFile.open(filename); 
-
 	if (!topologyFile) {
         cerr << "Error: Unable to open file!\n";
 		exit(0);
     }
 
+    /// Initializing variable names
 	int source, destination, cost;
 
 	/// Iterate through all lines in topologyFile and read for source, destination, and cost
@@ -83,40 +74,47 @@ void readTopology(string filename, unordered_map<int, unordered_map<int, int>>&t
 
 }
 
-///FILL THIS OUT LATER!!!!! 
+
 /**
- * @brief main function 
+ * @brief Function to check if a direct connection between source and destination exists 
  * 
- * @param arcg argument count, indicating number of arguments passed from the command line
- * @param argv argument vector, pointing to an array of strings, each of which contains an argument passed from the command line
+ * @param source Value of source node
+ * @param destination  Value of destination node 
+ * @param topology Topology map
  * 
- * @return 0
+ * @return boolean true or false 
  * 
 */
-// Function to check if a connection exists in the topology
-bool connectionExists(int source, int destination, unordered_map<int, unordered_map<int, int>>&topology) {
+bool connectionExists(int source, int destination, unordered_map<int, unordered_map<int, int>>&topology){
+    /// Find source in the topology
     auto i = topology.find(source);
+    
+    /// If source not found return false 
     if (i != topology.end()) {
+        /// Find destination in the topology
         auto j = i->second.find(destination);
-        if (j != i->second.end()) {
-            return true; // Connection exists
+        /// If destination not found return false 
+        if (j != i->second.end()){
+            /// Source and destination have a direct connection 
+            return true;
         }
     }
-    return false; // Connection does not exist
+    return false; 
 }
 
-///FILL THIS OUT LATER!!!!! 
 /**
- * @brief main function 
+ * @brief Initialize the forwarding table with known information from the topology file
  * 
- * @param arcg argument count, indicating number of arguments passed from the command line
- * @param argv argument vector, pointing to an array of strings, each of which contains an argument passed from the command line
+ * @param topology Topology map [source][destination] = cost
+ * @param forwarding_table Forwarding table [source][destination] = pair(cost, next hop)
+ * @param nodes Set of all nodes active in the topology
  * 
- * @return 0
+ * @return void
  * 
 */
-// Function to setup initial forwarding tables
-void tableSetup(unordered_map<int, unordered_map<int, int>> &topology, unordered_map<int, unordered_map<int, pair<int, int>>> &forwarding_table, set<int> &nodes) {
+void tableSetup(unordered_map<int, unordered_map<int, int>> &topology, 
+                unordered_map<int, unordered_map<int, pair<int, int>>> &forwarding_table, 
+                set<int> &nodes) {
     // Iterate over each node
     for (int source : nodes) {
         for (int destination : nodes) {
@@ -246,7 +244,7 @@ void message(string filename,
 /**
  * @brief main function 
  * 
- * @param arcg argument count, indicating number of arguments passed from the command line
+ * @param argc argument count, indicating number of arguments passed from the command line
  * @param argv argument vector, pointing to an array of strings, each of which contains an argument passed from the command line
  * 
  * @return 0
