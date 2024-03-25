@@ -83,6 +83,16 @@ void readTopology(string filename, unordered_map<int, unordered_map<int, int>>&t
 
 }
 
+///FILL THIS OUT LATER!!!!! 
+/**
+ * @brief main function 
+ * 
+ * @param arcg argument count, indicating number of arguments passed from the command line
+ * @param argv argument vector, pointing to an array of strings, each of which contains an argument passed from the command line
+ * 
+ * @return 0
+ * 
+*/
 // Function to check if a connection exists in the topology
 bool connectionExists(int source, int destination, unordered_map<int, unordered_map<int, int>>&topology) {
     auto i = topology.find(source);
@@ -95,7 +105,16 @@ bool connectionExists(int source, int destination, unordered_map<int, unordered_
     return false; // Connection does not exist
 }
 
-
+///FILL THIS OUT LATER!!!!! 
+/**
+ * @brief main function 
+ * 
+ * @param arcg argument count, indicating number of arguments passed from the command line
+ * @param argv argument vector, pointing to an array of strings, each of which contains an argument passed from the command line
+ * 
+ * @return 0
+ * 
+*/
 // Function to setup initial forwarding tables
 void tableSetup(unordered_map<int, unordered_map<int, int>> &topology, unordered_map<int, unordered_map<int, pair<int, int>>> &forwarding_table, set<int> &nodes) {
     // Iterate over each node
@@ -169,7 +188,16 @@ void decentralizedBellmanFord(unordered_map<int, unordered_map<int, int>> &topol
 	}
 }
 
-
+// FILL OUT LATER!!!!!!!!
+/**
+ * @brief main function 
+ * 
+ * @param arcg argument count, indicating number of arguments passed from the command line
+ * @param argv argument vector, pointing to an array of strings, each of which contains an argument passed from the command line
+ * 
+ * @return 0
+ * 
+*/
 void message(string filename, 
             ofstream &outFile, 
             unordered_map<int, unordered_map<int, pair<int, int>>> &forwarding_table){
@@ -181,7 +209,7 @@ void message(string filename,
 		exit(0);
     }
 
-    int source, destination, cost;
+    int source, destination, cost, hops;
     string line;
     while(getline(messageFile, line)){
         stringstream ss(line);
@@ -193,6 +221,7 @@ void message(string filename,
         getline(ss, text);
         
         cost = forwarding_table[source][destination].first;
+        hops = source; 
         
         if(cost == -999){
             outFile << "from " << source << " to " << destination << " cost infinite hops unreachable message" << text << endl;
@@ -200,7 +229,14 @@ void message(string filename,
         
         //implement hops!
 
-        outFile << "from " << source << " to " << destination << " cost " << cost << " message" << text << endl;
+        outFile << "from " << source << " to " << destination << " cost " << cost << " hops " ; 
+        
+        while(hops != destination){
+            outFile << hops << " "; 
+            hops = forwarding_table[hops][destination].second;
+        }
+        
+        outFile << "message" << text << endl;
         
     }
     messageFile.close(); // Close file after reading
@@ -281,9 +317,14 @@ int main(int argc, char** argv){
     }
     int newSource, newDestination, newCost;
     while (changefile >> newSource >> newDestination >> newCost){
+        if(newCost == -999){
+        topology[newSource].erase(newDestination);
+        topology[newDestination].erase(newSource);
+        }
+        else {
         topology[newSource][newDestination] = newCost;
         topology[newDestination][newSource] = newCost;
-
+        }
         /// Check if source node exists in set
 		if (nodes.find(newSource) == nodes.end()) {
 			/// If it doesn't exist, insert into ordered set

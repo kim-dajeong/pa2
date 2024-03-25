@@ -23,8 +23,8 @@
 3 2 7
 4 4 1
 5 5 0
-from 2 to 1 cost 6 message here is a message from 2 to 1
-from 3 to 5 cost 7 message this message gets sent from 3 to 5
+from 2 to 1 cost 6 hops 2 5 4 message here is a message from 2 to 1
+from 3 to 5 cost 7 hops 3 2 message this message gets sent from 3 to 5
 1 1 0
 2 4 2
 3 4 5
@@ -50,32 +50,32 @@ from 3 to 5 cost 7 message this message gets sent from 3 to 5
 3 4 5
 4 4 1
 5 5 0
-from 2 to 1 cost 2 message here is a message from 2 to 1
-from 3 to 5 cost 5 message this message gets sent from 3 to 5
+from 2 to 1 cost 2 hops 2 4 message here is a message from 2 to 1
+from 3 to 5 cost 5 hops 3 2 4 message this message gets sent from 3 to 5
 1 1 0
-2 4 -998
-3 4 -4991
-4 2 -991
-5 4 -5992
-1 4 -6992
+2 4 6
+3 4 9
+4 4 1
+5 4 2
+1 5 6
 2 2 0
-3 4 -5991
-4 4 -999
-5 4 -6992
-1 2 -6989
+3 3 3
+4 5 5
+5 5 4
+1 2 9
 2 2 3
 3 3 0
-4 2 -996
-5 2 -6989
-1 2 -7991
-2 2 -999
-3 2 -6990
+4 2 8
+5 2 7
+1 1 1
+2 5 5
+3 5 8
 4 4 0
-5 2 -7991
-1 4 -7990
-2 4 -998
-3 4 -6989
-4 2 -995
+5 5 1
+1 4 2
+2 2 4
+3 2 7
+4 4 1
 5 5 0
-from 2 to 1 cost -6992 message here is a message from 2 to 1
-from 3 to 5 cost -6989 message this message gets sent from 3 to 5
+from 2 to 1 cost 6 hops 2 5 4 message here is a message from 2 to 1
+from 3 to 5 cost 7 hops 3 2 message this message gets sent from 3 to 5
