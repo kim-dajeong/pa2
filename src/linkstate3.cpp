@@ -152,6 +152,13 @@ void tableSetup(unordered_map<int, unordered_map<int, int>> &topology, unordered
 
 using namespace std;
 
+#include <unordered_map>
+#include <set>
+#include <queue>
+#include <climits>
+
+using namespace std;
+
 void dijkstra(unordered_map<int, unordered_map<int, int>> &topology,
               unordered_map<int, unordered_map<int, pair<int, int>>> &forwarding_table,
               set<int> &nodes,
@@ -175,11 +182,14 @@ void dijkstra(unordered_map<int, unordered_map<int, int>> &topology,
             if (distance[node] != INT_MAX && distance[node] + cost < distance[neighbor]) {
                 distance[neighbor] = distance[node] + cost;
                 forwarding_table[source][neighbor] = make_pair(distance[neighbor], node);
+                // Update the forwarding table for source-destination pair with cost and nexthop
+                forwarding_table[source][neighbor] = make_pair(distance[neighbor], neighbor);
                 pq.push({distance[neighbor], neighbor});
             }
         }
     }
 }
+
 
 // FILL OUT LATER!!!!!!!!
 /**
