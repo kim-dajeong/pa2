@@ -115,15 +115,21 @@ bool connectionExists(int source, int destination, unordered_map<int, unordered_
 void tableSetup(unordered_map<int, unordered_map<int, int>> &topology, 
                 unordered_map<int, unordered_map<int, pair<int, int>>> &forwarding_table, 
                 set<int> &nodes) {
-    // Iterate over each node
+    /// Iterate over each node
     for (int source : nodes) {
+        /// Iterate over each destination
         for (int destination : nodes) {
+            /// If the source is equal to the destination set the cost to be 0 and next hop to be the node itself 
             if (source == destination) {
                 forwarding_table[source][destination] = make_pair(0, destination); // Set direct connection cost to 0 and next hop to destination
-            } else {
+            } 
+            /// Otherwise check if a direct connection to a neighbour exists. If not set the cost to infinity and the next hop to -999 (disconnected)
+            else {
                 if (!connectionExists(source, destination, topology)) {
                     forwarding_table[source][destination] = make_pair(inf, -999); // Set non-existent connection cost to infinity and next hop to -999
-                } else {
+                } 
+                /// Update the forwarding table for the direct neighbours 
+                else {
                     forwarding_table[source][destination] = make_pair(topology[source][destination], destination); // Give cost to nodes with a connection and set next hop
                 }
             }
@@ -131,17 +137,16 @@ void tableSetup(unordered_map<int, unordered_map<int, int>> &topology,
     }
 }
 
-///FILL THIS OUT LATER!!!!! 
 /**
- * @brief main function 
+ * @brief Running a decentralized Bellman-Ford Algorithm as the main part of calculating the routing table for a distance vector protocol 
  * 
- * @param arcg argument count, indicating number of arguments passed from the command line
- * @param argv argument vector, pointing to an array of strings, each of which contains an argument passed from the command line
+ * @param topology The total topology of the system collected from the topologyFile 
+ * @param forwarding_table Forwarding table data structure, The forwarding table is as follows: [source][destination] = pair(cost, next hop) 
+ * @param nodes A set of all possible nodes in the topology 
  * 
- * @return 0
+ * @return void 
  * 
 */
-// Decentralized Bellman-Ford algorithm
 void decentralizedBellmanFord(unordered_map<int, unordered_map<int, int>> &topology,
                               unordered_map<int, unordered_map<int, pair<int, int>>> &forwarding_table,
                               set<int> &nodes) {
@@ -149,23 +154,23 @@ void decentralizedBellmanFord(unordered_map<int, unordered_map<int, int>> &topol
 	
 	/// Run Bellman Ford Size-1 Times
 	for(int i; i < nodes.size(); i++){
-	// Iterate over each node
+	/// Iterate over each node
     for (int node : nodes) {
-        // Iterate over each destination
+        /// Iterate over each destination
         for (int destination : nodes) {
             int cost = inf;
             int nexthop = -1;
 
-            // Check if direct link exists from node to destination
+            /// Check if direct link exists from node to destination
             if (topology.find(node) != topology.end() && topology.at(node).find(destination) != topology.at(node).end()) {
                 cost = topology.at(node).at(destination);
                 nexthop = destination;
             }
 
-            // Iterate over neighbors to find better paths
+            /// Iterate over neighbors to find better paths
             for (int neighbor : nodes) {
                 if (topology.find(node) != topology.end() && topology.at(node).find(neighbor) != topology.at(node).end()) {
-                    // Check if the neighbor has a route to the destination
+                    /// Check if the neighbor has a route to the destination
                     if (forwarding_table.find(neighbor) != forwarding_table.end() &&
                         forwarding_table.at(neighbor).find(destination) != forwarding_table.at(neighbor).end()) {
                         int temp = topology.at(node).at(neighbor) + forwarding_table.at(neighbor).at(destination).first;
@@ -178,7 +183,7 @@ void decentralizedBellmanFord(unordered_map<int, unordered_map<int, int>> &topol
             }
 
             if(node != destination){
-            // Update forwarding table entry
+            /// Update forwarding table entry
             forwarding_table[node][destination] = make_pair(cost, nexthop);
             }
         }
@@ -186,20 +191,20 @@ void decentralizedBellmanFord(unordered_map<int, unordered_map<int, int>> &topol
 	}
 }
 
-// FILL OUT LATER!!!!!!!!
 /**
- * @brief main function 
+ * @brief message function to output messages to the output file
  * 
- * @param arcg argument count, indicating number of arguments passed from the command line
- * @param argv argument vector, pointing to an array of strings, each of which contains an argument passed from the command line
+ * @param filename The filename of messageFile (i.e. messageFile.txt)
+ * @param outFile An access point to outFile so this function can write to output.txt
+ * @param forwarding_table The complete forwarding table unordered map in form [source][destination] = pair(cost, next hop)  
  * 
- * @return 0
+ * @return void
  * 
 */
 void message(string filename, 
             ofstream &outFile, 
             unordered_map<int, unordered_map<int, pair<int, int>>> &forwarding_table){
-    
+    /// File input for the messageFile
     ifstream messageFile;
 	messageFile.open(filename); 
 	if (!messageFile) {
@@ -207,37 +212,46 @@ void message(string filename,
 		exit(0);
     }
 
+    /// Initializing variables
     int source, destination, cost, hops;
     string line;
+
+    /// While there lines of data in messagefile 
     while(getline(messageFile, line)){
+        /// First two values in the line are source and destination respectively 
         stringstream ss(line);
         if (!(ss >> source >> destination)) {
             cerr << "Error reading source and destination!\n";
             continue; // Skip to next iteration
         }
+
+        /// The rest of the values in the line are the message string. Save that value to text.
         string text;
         getline(ss, text);
         
+        /// Set values for cost and hops
         cost = forwarding_table[source][destination].first;
         hops = source; 
         
+        /// If the cost is -999 therre is no way to access that node so return infinite hops
         if(cost == -999){
             outFile << "from " << source << " to " << destination << " cost infinite hops unreachable message" << text << endl;
         }
+        else{
+            /// Write data to file 
+            outFile << "from " << source << " to " << destination << " cost " << cost << " hops " ; 
         
-        //implement hops!
-
-        outFile << "from " << source << " to " << destination << " cost " << cost << " hops " ; 
+            /// Keep track of the intermediate hops taken to reach destination 
+            while(hops != destination){
+                outFile << hops << " "; 
+                hops = forwarding_table[hops][destination].second;
+            }
         
-        while(hops != destination){
-            outFile << hops << " "; 
-            hops = forwarding_table[hops][destination].second;
+            /// Write the output message to the output.txt file 
+            outFile << "message" << text << endl;
         }
-        
-        outFile << "message" << text << endl;
-        
     }
-    messageFile.close(); // Close file after reading
+    messageFile.close(); /// Close file after reading
 }
 
 
