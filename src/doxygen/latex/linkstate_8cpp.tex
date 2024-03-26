@@ -1,0 +1,290 @@
+\doxysection{linkstate.\+cpp File Reference}
+\hypertarget{linkstate_8cpp}{}\label{linkstate_8cpp}\index{linkstate.cpp@{linkstate.cpp}}
+
+
+Uses linkstate routing protocol to update a forwarding table.  
+
+
+{\ttfamily \#include $<$iostream$>$}\newline
+{\ttfamily \#include $<$unordered\+\_\+map$>$}\newline
+{\ttfamily \#include $<$fstream$>$}\newline
+{\ttfamily \#include $<$set$>$}\newline
+{\ttfamily \#include $<$vector$>$}\newline
+{\ttfamily \#include $<$sstream$>$}\newline
+{\ttfamily \#include $<$algorithm$>$}\newline
+{\ttfamily \#include $<$limits$>$}\newline
+{\ttfamily \#include $<$utility$>$}\newline
+\doxysubsubsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{linkstate_8cpp_a536b216e2e7c9641d4e232ad96dee3c2}\label{linkstate_8cpp_a536b216e2e7c9641d4e232ad96dee3c2} 
+\#define {\bfseries inf}~2000000000
+\begin{DoxyCompactList}\small\item\em Setting infinity to be some arbitrarily large number. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{linkstate_8cpp_a5521ad00f8b91497207adf553bfd377d}{read\+Topology}} (string filename, unordered\+\_\+map$<$ int, unordered\+\_\+map$<$ int, int $>$ $>$ \&topology, set$<$ int $>$ \&nodes)
+\begin{DoxyCompactList}\small\item\em Reads from the topology file and writes it to an unordered map and a set of nodes for easy reference. \end{DoxyCompactList}\item 
+bool \mbox{\hyperlink{linkstate_8cpp_a95f14f1450148093a724402cbbfd6d59}{connection\+Exists}} (int source, int destination, unordered\+\_\+map$<$ int, unordered\+\_\+map$<$ int, int $>$ $>$ \&topology)
+\begin{DoxyCompactList}\small\item\em Function to check if a direct connection between source and destination exists. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{linkstate_8cpp_a7991cd6858d26c6c5bb04bc501b035ec}{table\+Setup}} (unordered\+\_\+map$<$ int, unordered\+\_\+map$<$ int, int $>$ $>$ \&topology, unordered\+\_\+map$<$ int, unordered\+\_\+map$<$ int, pair$<$ int, int $>$ $>$ $>$ \&forwarding\+\_\+table, set$<$ int $>$ \&nodes)
+\begin{DoxyCompactList}\small\item\em Initialize the forwarding table with known information from the topology file. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{linkstate_8cpp_a8da79ff08864287ca232adb25c174375}{decentralized\+Dijkstra}} (unordered\+\_\+map$<$ int, unordered\+\_\+map$<$ int, int $>$ $>$ \&topology, unordered\+\_\+map$<$ int, unordered\+\_\+map$<$ int, pair$<$ int, int $>$ $>$ $>$ \&forwarding\+\_\+table, set$<$ int $>$ \&nodes)
+\begin{DoxyCompactList}\small\item\em Running a decentralized dijkstra algorithm as the main part of calculating the routing table for a linkstate protocol. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{linkstate_8cpp_ae3c555da5dec5eaeedc221e241e91539}{message}} (string filename, ofstream \&out\+File, unordered\+\_\+map$<$ int, unordered\+\_\+map$<$ int, pair$<$ int, int $>$ $>$ $>$ \&forwarding\+\_\+table)
+\begin{DoxyCompactList}\small\item\em message function to output messages to the output file \end{DoxyCompactList}\item 
+int \mbox{\hyperlink{linkstate_8cpp_a3c04138a5bfe5d72780bb7e82a18e627}{main}} (int argc, char \texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}argv)
+\begin{DoxyCompactList}\small\item\em main function \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Uses linkstate routing protocol to update a forwarding table. 
+
+\begin{DoxyAuthor}{Author}
+Ana Bandari (anabandari) 
+
+Dajeong Kim (dkim2)
+\end{DoxyAuthor}
+\begin{DoxyRefDesc}{Bug}
+\item[\mbox{\hyperlink{bug__bug000002}{Bug}}]None known at this time. \end{DoxyRefDesc}
+
+
+\doxysubsection{Function Documentation}
+\Hypertarget{linkstate_8cpp_a95f14f1450148093a724402cbbfd6d59}\label{linkstate_8cpp_a95f14f1450148093a724402cbbfd6d59} 
+\index{linkstate.cpp@{linkstate.cpp}!connectionExists@{connectionExists}}
+\index{connectionExists@{connectionExists}!linkstate.cpp@{linkstate.cpp}}
+\doxysubsubsection{\texorpdfstring{connectionExists()}{connectionExists()}}
+{\footnotesize\ttfamily bool connection\+Exists (\begin{DoxyParamCaption}\item[{int}]{source,  }\item[{int}]{destination,  }\item[{unordered\+\_\+map$<$ int, unordered\+\_\+map$<$ int, int $>$ $>$ \&}]{topology }\end{DoxyParamCaption})}
+
+
+
+Function to check if a direct connection between source and destination exists. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em source} & Value of source node \\
+\hline
+{\em destination} & Value of destination node \\
+\hline
+{\em topology} & Topology map\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+boolean true or false 
+\end{DoxyReturn}
+Find source in the topology
+
+If source not found return false
+
+Find destination in the topology
+
+If destination not found return false
+
+Source and destination have a direct connection\Hypertarget{linkstate_8cpp_a8da79ff08864287ca232adb25c174375}\label{linkstate_8cpp_a8da79ff08864287ca232adb25c174375} 
+\index{linkstate.cpp@{linkstate.cpp}!decentralizedDijkstra@{decentralizedDijkstra}}
+\index{decentralizedDijkstra@{decentralizedDijkstra}!linkstate.cpp@{linkstate.cpp}}
+\doxysubsubsection{\texorpdfstring{decentralizedDijkstra()}{decentralizedDijkstra()}}
+{\footnotesize\ttfamily void decentralized\+Dijkstra (\begin{DoxyParamCaption}\item[{unordered\+\_\+map$<$ int, unordered\+\_\+map$<$ int, int $>$ $>$ \&}]{topology,  }\item[{unordered\+\_\+map$<$ int, unordered\+\_\+map$<$ int, pair$<$ int, int $>$ $>$ $>$ \&}]{forwarding\+\_\+table,  }\item[{set$<$ int $>$ \&}]{nodes }\end{DoxyParamCaption})}
+
+
+
+Running a decentralized dijkstra algorithm as the main part of calculating the routing table for a linkstate protocol. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em topology} & The total topology of the system collected from the topology\+File \\
+\hline
+{\em forwarding\+\_\+table} & Forwarding table data structure, The forwarding table is as follows\+: \mbox{[}source\mbox{]}\mbox{[}destination\mbox{]} = pair(cost, next hop) \\
+\hline
+{\em nodes} & A set of all possible nodes in the topology\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+void 
+\end{DoxyReturn}
+Initialize cost, visited, and next\+\_\+hop arrays
+
+Repeat through all nodes in topology and initialize cost, visited, and next\+\_\+hop
+
+Check if path is leading back to source and set cost to 0
+
+Initialize cost of source node
+
+Find the node with the minimum cost that has not been visited
+
+Look for lowest cost path and update
+
+Update new minimum cost and node if found
+
+Mark the selected node as visited
+
+Update costs and next hops of neighboring nodes (relaxation step)
+
+check if node has been visited
+
+Update cost to node if lower than current min
+
+Update new next hop and cost on forwarding table\Hypertarget{linkstate_8cpp_a3c04138a5bfe5d72780bb7e82a18e627}\label{linkstate_8cpp_a3c04138a5bfe5d72780bb7e82a18e627} 
+\index{linkstate.cpp@{linkstate.cpp}!main@{main}}
+\index{main@{main}!linkstate.cpp@{linkstate.cpp}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily int main (\begin{DoxyParamCaption}\item[{int}]{argc,  }\item[{char \texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}}]{argv }\end{DoxyParamCaption})}
+
+
+
+main function 
+
+
+\begin{DoxyParams}{Parameters}
+{\em argc} & argument count, indicating number of arguments passed from the command line \\
+\hline
+{\em argv} & argument vector, pointing to an array of strings, each of which contains an argument passed from the command line\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+0 
+\end{DoxyReturn}
+forwarding table
+
+Read from topology file and save to data structure
+
+Run dijkstra\textquotesingle{}s algorithm on all nodes
+
+Output forwarding tables to files
+
+Sort the entries in forwarding\+\_\+table by source and destination
+
+send message
+
+apply changes
+
+Check if file was opened correctly
+
+Apply new changes to topology
+
+Check if connection still remains
+
+Update link cost to new cost from changes
+
+Check if source node exists in set
+
+If it doesn\textquotesingle{}t exist, insert into ordered set
+
+Check if destination node exists in set
+
+If it doesn\textquotesingle{}t exist, insert into ordered set
+
+Run Diijkstra\textquotesingle{}s algorithm after changing topology
+
+Send messages and write output to output\+File\Hypertarget{linkstate_8cpp_ae3c555da5dec5eaeedc221e241e91539}\label{linkstate_8cpp_ae3c555da5dec5eaeedc221e241e91539} 
+\index{linkstate.cpp@{linkstate.cpp}!message@{message}}
+\index{message@{message}!linkstate.cpp@{linkstate.cpp}}
+\doxysubsubsection{\texorpdfstring{message()}{message()}}
+{\footnotesize\ttfamily void message (\begin{DoxyParamCaption}\item[{string}]{filename,  }\item[{ofstream \&}]{out\+File,  }\item[{unordered\+\_\+map$<$ int, unordered\+\_\+map$<$ int, pair$<$ int, int $>$ $>$ $>$ \&}]{forwarding\+\_\+table }\end{DoxyParamCaption})}
+
+
+
+message function to output messages to the output file 
+
+
+\begin{DoxyParams}{Parameters}
+{\em filename} & The filename of message\+File (i.\+e. message\+File.\+txt) \\
+\hline
+{\em out\+File} & An access point to out\+File so this function can write to output.\+txt \\
+\hline
+{\em forwarding\+\_\+table} & The complete forwarding table unordered map in form \mbox{[}source\mbox{]}\mbox{[}destination\mbox{]} = pair(cost, next hop) ~\newline
+\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+void 
+\end{DoxyReturn}
+File input for the message\+File
+
+Initializing variables
+
+While there lines of data in messagefile
+
+First two values in the line are source and destination respectively
+
+The rest of the values in the line are the message string. Save that value to text.
+
+Set values for cost and hops
+
+If the cost is -\/999 therre is no way to access that node so return infinite hops
+
+Write data to file
+
+Keep track of the intermediate hops taken to reach destination
+
+Write the output message to the output.\+txt file
+
+Close file after reading\Hypertarget{linkstate_8cpp_a5521ad00f8b91497207adf553bfd377d}\label{linkstate_8cpp_a5521ad00f8b91497207adf553bfd377d} 
+\index{linkstate.cpp@{linkstate.cpp}!readTopology@{readTopology}}
+\index{readTopology@{readTopology}!linkstate.cpp@{linkstate.cpp}}
+\doxysubsubsection{\texorpdfstring{readTopology()}{readTopology()}}
+{\footnotesize\ttfamily void read\+Topology (\begin{DoxyParamCaption}\item[{string}]{filename,  }\item[{unordered\+\_\+map$<$ int, unordered\+\_\+map$<$ int, int $>$ $>$ \&}]{topology,  }\item[{set$<$ int $>$ \&}]{nodes }\end{DoxyParamCaption})}
+
+
+
+Reads from the topology file and writes it to an unordered map and a set of nodes for easy reference. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em filename} & The name of the topology file i.\+e. "{}topology\+File.\+txt"{} \\
+\hline
+{\em topology} & Topology map, an unordered map containing information from the topology\+File for easy reference \\
+\hline
+{\em nodes} & A set of all the nodes present in the network\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+void 
+\end{DoxyReturn}
+File input setup
+
+Initializing variable names
+
+Iterate through all lines in topology\+File and read for source, destination, and cost
+
+Update new topology connection and cost in both directions
+
+Check if source node exists in set
+
+If it doesn\textquotesingle{}t exist, insert into ordered set
+
+Check if destination node exists in set
+
+If it doesn\textquotesingle{}t exist, insert into ordered set
+
+Close the file\Hypertarget{linkstate_8cpp_a7991cd6858d26c6c5bb04bc501b035ec}\label{linkstate_8cpp_a7991cd6858d26c6c5bb04bc501b035ec} 
+\index{linkstate.cpp@{linkstate.cpp}!tableSetup@{tableSetup}}
+\index{tableSetup@{tableSetup}!linkstate.cpp@{linkstate.cpp}}
+\doxysubsubsection{\texorpdfstring{tableSetup()}{tableSetup()}}
+{\footnotesize\ttfamily void table\+Setup (\begin{DoxyParamCaption}\item[{unordered\+\_\+map$<$ int, unordered\+\_\+map$<$ int, int $>$ $>$ \&}]{topology,  }\item[{unordered\+\_\+map$<$ int, unordered\+\_\+map$<$ int, pair$<$ int, int $>$ $>$ $>$ \&}]{forwarding\+\_\+table,  }\item[{set$<$ int $>$ \&}]{nodes }\end{DoxyParamCaption})}
+
+
+
+Initialize the forwarding table with known information from the topology file. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em topology} & Topology map \mbox{[}source\mbox{]}\mbox{[}destination\mbox{]} = cost \\
+\hline
+{\em forwarding\+\_\+table} & Forwarding table \mbox{[}source\mbox{]}\mbox{[}destination\mbox{]} = pair(cost, next hop) \\
+\hline
+{\em nodes} & Set of all nodes active in the topology\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+void 
+\end{DoxyReturn}
+Iterate over each node
+
+Iterate over each destination
+
+If the source is equal to the destination set the cost to be 0 and next hop to be the node itself
+
+Otherwise check if a direct connection to a neighbour exists. If not set the cost to infinity and the next hop to -\/999 (disconnected)
+
+Update the forwarding table for the direct neighbours
