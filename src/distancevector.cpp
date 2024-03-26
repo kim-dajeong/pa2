@@ -237,6 +237,9 @@ void message(string filename,
         if(cost == -999){
             outFile << "from " << source << " to " << destination << " cost infinite hops unreachable message" << text << endl;
         }
+        if(cost == inf){
+            outFile << "from " << source << " to " << destination << " cost infinite hops unreachable message" << text << endl;
+        }
         else{
             /// Write data to file 
             outFile << "from " << source << " to " << destination << " cost " << cost << " hops " ; 
