@@ -185,20 +185,23 @@ void decentralizedDijkstra(unordered_map<int, unordered_map<int, int>> &topology
             // Mark the selected node as visited
             visited[min_index] = true;
 
-            // Update forwarding table
+            // Update costs and next hops of neighboring nodes (relaxation step)
             for (auto& neighbor : topology[min_index]) {
                 int v = neighbor.first;
                 int cost = neighbor.second;
-                if (!visited[v] && min_cost + cost < costs[v]) {
-                    costs[v] = min_cost + cost;
-                    next_hop[v] = min_index == source ? v : min_index;
-                    forwarding_table[source][v] = {costs[v], next_hop[v]};
+                if (!visited[v]) {
+                    if (min_cost + cost < costs[v]) {
+                        costs[v] = min_cost + cost;
+                        next_hop[v] = (min_index == source) ? v : next_hop[min_index];
+                        forwarding_table[source][v] = {costs[v], next_hop[v]};
+                    }
                 }
             }
-        }
+
     }
 
     
+    }
 }
 
 
