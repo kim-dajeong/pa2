@@ -1,6 +1,6 @@
 /**
- *  @file distancevector.cpp
- *  @brief Uses distance vector routing protocol to update a forwarding table. 
+ *  @file linkstate.cpp
+ *  @brief Uses linkstate routing protocol to update a forwarding table. 
  *
  *  @author Ana Bandari (anabandari)
  *  @author Dajeong Kim (dkim2)
@@ -138,7 +138,7 @@ void tableSetup(unordered_map<int, unordered_map<int, int>> &topology,
 }
 
 /**
- * @brief Running a decentralized Bellman-Ford Algorithm as the main part of calculating the routing table for a distance vector protocol 
+ * @brief Running a decentralized dijkstra algorithm as the main part of calculating the routing table for a linkstate protocol 
  * 
  * @param topology The total topology of the system collected from the topologyFile 
  * @param forwarding_table Forwarding table data structure, The forwarding table is as follows: [source][destination] = pair(cost, next hop) 
