@@ -157,6 +157,7 @@ void decentralizedDijkstra(unordered_map<int, unordered_map<int, int>> &topology
         unordered_map<int, int> costs;
         unordered_map<int, bool> visited;
         unordered_map<int, int> next_hop;
+        // Repeat through all nodes in topology and initialize cost, visited, and next_hop
         for (int node : nodes) {
             costs[node] = INT_MAX;
             visited[node] = false;
@@ -170,13 +171,14 @@ void decentralizedDijkstra(unordered_map<int, unordered_map<int, int>> &topology
             }
         }
 
-
         for (int count = 0; count < nodes.size(); ++count) {
             // Find the node with the minimum cost that has not been visited
             int min_cost = INT_MAX;
             int min_index = -1;
+            // Look for lowest cost path and update
             for (int v : nodes) {
                 if (!visited[v] && costs[v] < min_cost) {
+                    // Update new minimum cost and node if found
                     min_cost = costs[v];
                     min_index = v;
                 }
@@ -189,6 +191,7 @@ void decentralizedDijkstra(unordered_map<int, unordered_map<int, int>> &topology
             for (auto& neighbor : topology[min_index]) {
                 int v = neighbor.first;
                 int cost = neighbor.second;
+                // 
                 if (!visited[v]) {
                     if (min_cost + cost < costs[v]) {
                         costs[v] = min_cost + cost;
