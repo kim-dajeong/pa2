@@ -1,14 +1,13 @@
 /**
- * @file linkstate.cpp
- *  @brief 
+ *  @file distancevector.cpp
+ *  @brief Uses distance vector routing protocol to update a forwarding table. 
  *
  *  @author Ana Bandari (anabandari)
  *  @author Dajeong Kim (dkim2)
  * 
- *  @bug 
+ *  @bug None known at this time. 
  * 
  */
-
 
 /*   Includes   */
 #include <iostream>
@@ -16,185 +15,16 @@
 #include <fstream>
 #include <set>
 #include <vector>
+#include <iostream>
 #include <sstream>
-#include <unordered_set>
-#include <queue>
-#include <limits>
-
+#include <algorithm>
+#include <limits> 
+#include <utility> 
 
 using namespace std;
 
-/// initial topology 
-unordered_map<int, unordered_map<int, int> > topology;
-
-/// forwarding table
-unordered_map<int, unordered_map<int, unordered_map<int, pair<int, int> > > > forwardingTable; // node, src, des, nexthop, cost
-
-// topology stored at each node
-unordered_map<int, unordered_map<int, unordered_map<int, int> > > nodeTopology; // node, src, des, cost
-
-set<int> nodes;
-
-
-/* Algorithm:
-	- Read from topology file
-	- Place into a datastructure
-	- Use an algorithm to get information out of the datastructure to place in forwarding table
-	- Write forwarding table output of each node to a file
-	- Implement changes to the existing topology
-
-	Link State Flooding == A node has access to the topology file.
-		- Run djikestras on each node. 
-			-> On event of a change 
-
-*/
-
-// Custom comparator for priority queue
-struct CompareDist {
-    bool operator()(const pair<int, int>& lhs, const pair<int, int>& rhs) const {
-        return lhs.second > rhs.second; // Compare distances
-    }
-};
-
-
-/// Dijkstra's Algorithm
-void dijkstra(unordered_map<int, unordered_map<int, int>>& topology,
-              unordered_map<int, unordered_map<int, unordered_map<int, pair<int, int>>>>& forwardingTable,
-              int start) {
-
-    // Priority queue to store nodes and their distances
-    priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> pq;
-
-    // Initialize distances with infinity
-    unordered_map<int, int> dist;
-
-    for (auto& node : topology) {
-
-        dist[node.first] = numeric_limits<int>::max();
-    }
-
-    // Set distance of source node to 0
-    dist[start] = 0;
-
-    // Push source node into priority queue
-    pq.push({0, start});
-
-    while (!pq.empty()) {
-
-        int u = pq.top().second;  // Get the node with the smallest distance
-        pq.pop();
-
-        // Iterate through all neighboring nodes of u
-        for (auto& neighbor : topology[u]) {
-
-            int v = neighbor.first;  // Neighbor node
-            int weight = neighbor.second;  // Edge weight
-
-            // If a shorter path is found
-            if (dist[v] > dist[u] + weight) {
-
-                // Update distance
-                dist[v] = dist[u] + weight;
-
-                // Update forwarding table
-                forwardingTable[v][start][v].first = v;
-                forwardingTable[v][start][v].second = dist[v];
-
-                // Push the updated distance and node into the priority queue
-                pq.push({dist[v], v});
-
-            }
-        }
-    }
-}
-
-/// Write topology to output file
-void writeTopologyToFile(const unordered_map<int, unordered_map<int, int>>& topology, const string& outputfilename) {
-
-    ofstream outputFile(outputfilename);
-
-    if (!outputFile.is_open()) {
-
-        cerr << "Error: Unable to open file " << outputfilename << endl;
-        return;
-
-    }
-
-    for (const auto& node : topology) {
-
-        int source = node.first;
-
-        for (const auto& neighbor : node.second) {
-
-            int destination = neighbor.first;
-            int cost = neighbor.second;
-            outputFile << source << " " << destination << " " << cost << endl;
-
-        }
-    }
-
-    outputFile.close();
-}
-
-
-void sendMessage(const string& messageFile, const unordered_map<int, unordered_map<int, unordered_map<int, pair<int, int>>>>& forwardingTable, const string& outputFile) {
-    ifstream inFile(messageFile);
-    ofstream outFile(outputFile);
-
-    if (!inFile.is_open()) {
-        cerr << "Error: Unable to open input file " << messageFile << endl;
-        return;
-    }
-    if (!outFile.is_open()) {
-        cerr << "Error: Unable to open output file " << outputFile << endl;
-        inFile.close();
-        return;
-    }
-
-    string line;
-    while (getline(inFile, line)) {
-
-        stringstream ss(line);
-        int source, destination;
-        string message;
-        ss >> source >> destination;
-        getline(ss, message);
-
-        // Find next hop and cost from forwarding table
-        int current = source;
-        int hops = -999;
-        int cost = -999;
-
-        vector<int> path;
-        path.push_back(source);
-
-        while (current != destination) {
-            int nextHop = forwardingTable.at(current).at(source).at(destination).first;
-            int edgeCost = forwardingTable.at(current).at(source).at(destination).second;
-
-            cost += edgeCost;
-            current = nextHop;
-            hops++;
-
-            path.push_back(current);
-        }
-
-        if(cost == -999) {
-            outFile << "from " << source << " to " << destination << " cost infinite hops unreachable message " << message << endl;
-            break;
-        }
-
-        // Write to output file
-        outFile << "from " << source << " to " << destination << " cost " << cost << " hops ";
-        for (int i = 1; i < path.size() - 1; ++i) {
-            outFile << path[i] << " ";
-        }
-        outFile << "message " << message << endl;
-    }
-
-    inFile.close();
-    outFile.close();
-}
+/// Setting infinity to be some arbitrarily large number 
+#define inf 2000000000
 
 /**
  * @brief Reads from the topology file and writes it to an unordered map and a set of nodes for easy reference
@@ -207,18 +37,15 @@ void sendMessage(const string& messageFile, const unordered_map<int, unordered_m
  * 
 */
 void readTopology(string filename, unordered_map<int, unordered_map<int, int>>&topology, set<int>&nodes){
-
+    /// File input setup
 	ifstream topologyFile;
-
 	topologyFile.open(filename); 
-
 	if (!topologyFile) {
-
         cerr << "Error: Unable to open file!\n";
 		exit(0);
-
     }
 
+    /// Initializing variable names
 	int source, destination, cost;
 
 	/// Iterate through all lines in topologyFile and read for source, destination, and cost
@@ -230,14 +57,12 @@ void readTopology(string filename, unordered_map<int, unordered_map<int, int>>&t
 
 		/// Check if source node exists in set
 		if (nodes.find(source) == nodes.end()) {
-
 			/// If it doesn't exist, insert into ordered set
 			nodes.insert(source);
 		}
 
 		/// Check if destination node exists in set
 		if (nodes.find(destination) == nodes.end()) {
-
 			/// If it doesn't exist, insert into ordered set
 			nodes.insert(destination);
 
@@ -250,100 +75,318 @@ void readTopology(string filename, unordered_map<int, unordered_map<int, int>>&t
 }
 
 
-
-// Run Djikestras shortest path algorithm to update the paths for every node using the unordered graph
-// Populate the forwarding table by running djikestras at every source node
-void runAlgorithm(unordered_map<int, unordered_map<int, int> > &topology, unordered_map<int, unordered_map<int, unordered_map<int, pair<int, int> > > > &forwardingTable, set<int>&nodes){
-	
-	int numNodes = nodes.size();
-
-	for (int n; n < numNodes - 1; n++) {
-
-		for (int node : nodes) {
-			int start = node;
-
-			dijkstra(topology, forwardingTable, start);
-
-		}
-	}
+/**
+ * @brief Function to check if a direct connection between source and destination exists 
+ * 
+ * @param source Value of source node
+ * @param destination  Value of destination node 
+ * @param topology Topology map
+ * 
+ * @return boolean true or false 
+ * 
+*/
+bool connectionExists(int source, int destination, unordered_map<int, unordered_map<int, int>>&topology){
+    /// Find source in the topology
+    auto i = topology.find(source);
+    
+    /// If source not found return false 
+    if (i != topology.end()) {
+        /// Find destination in the topology
+        auto j = i->second.find(destination);
+        /// If destination not found return false 
+        if (j != i->second.end()){
+            /// Source and destination have a direct connection 
+            return true;
+        }
+    }
+    return false; 
 }
 
-
-/// apply changes from changesfile and redo calculations
-void applyChanges(string changesfile, unordered_map<int, unordered_map<int, int>>& topology, unordered_map<int, unordered_map<int, unordered_map<int, pair<int, int>>>> &forwardingTable, string &messagefile, string& outputfilename) {
-
-	ifstream change(changesfile);
-    ofstream outFile(outputfilename);
-
-    int src, dest, cost;
-
-    if (change.is_open()) {
-
-        while (change >> src >> dest >> cost) {
-
-			/// Update topology changes
-            topology[src][dest] = cost;
-            topology[dest][src] = cost;
-
-			runAlgorithm(topology, forwardingTable, nodes);
-			writeTopologyToFile(topology, outputfilename);
-			sendMessage(messagefile, forwardingTable, outputfilename);
-
+/**
+ * @brief Initialize the forwarding table with known information from the topology file
+ * 
+ * @param topology Topology map [source][destination] = cost
+ * @param forwarding_table Forwarding table [source][destination] = pair(cost, next hop)
+ * @param nodes Set of all nodes active in the topology
+ * 
+ * @return void
+ * 
+*/
+void tableSetup(unordered_map<int, unordered_map<int, int>> &topology, 
+                unordered_map<int, unordered_map<int, pair<int, int>>> &forwarding_table, 
+                set<int> &nodes) {
+    /// Iterate over each node
+    for (int source : nodes) {
+        /// Iterate over each destination
+        for (int destination : nodes) {
+            /// If the source is equal to the destination set the cost to be 0 and next hop to be the node itself 
+            if (source == destination) {
+                forwarding_table[source][destination] = make_pair(0, destination); // Set direct connection cost to 0 and next hop to destination
+            } 
+            /// Otherwise check if a direct connection to a neighbour exists. If not set the cost to infinity and the next hop to -999 (disconnected)
+            else {
+                if (!connectionExists(source, destination, topology)) {
+                    forwarding_table[source][destination] = make_pair(inf, -999); // Set non-existent connection cost to infinity and next hop to -999
+                } 
+                /// Update the forwarding table for the direct neighbours 
+                else {
+                    forwarding_table[source][destination] = make_pair(topology[source][destination], destination); // Give cost to nodes with a connection and set next hop
+                }
+            }
         }
     }
 }
 
+/**
+ * @brief Running a decentralized Bellman-Ford Algorithm as the main part of calculating the routing table for a distance vector protocol 
+ * 
+ * @param topology The total topology of the system collected from the topologyFile 
+ * @param forwarding_table Forwarding table data structure, The forwarding table is as follows: [source][destination] = pair(cost, next hop) 
+ * @param nodes A set of all possible nodes in the topology 
+ * 
+ * @return void 
+ * 
+*/
+void decentralizedDijkstra(unordered_map<int, unordered_map<int, int>> &topology,
+                           unordered_map<int, unordered_map<int, pair<int, int>>> &forwarding_table,
+                           set<int> &nodes) {
+    //tableSetup(topology, forwarding_table, nodes);
+
+    for (int source : nodes) {
+        // Initialize cost, visited, and next_hop arrays
+        unordered_map<int, int> costs;
+        unordered_map<int, bool> visited;
+        unordered_map<int, int> next_hop;
+        for (int node : nodes) {
+            costs[node] = INT_MAX;
+            visited[node] = false;
+            next_hop[node] = -1;
+
+            if(node == source){
+                // Initialize cost of source node
+                forwarding_table[source][node] = make_pair(0, source);
+                costs[source] = 0;
+                next_hop[source] = source; 
+            }
+        }
 
 
+        for (int count = 0; count < nodes.size(); ++count) {
+            // Find the node with the minimum cost that has not been visited
+            int min_cost = INT_MAX;
+            int min_index = -1;
+            for (int v : nodes) {
+                if (!visited[v] && costs[v] < min_cost) {
+                    min_cost = costs[v];
+                    min_index = v;
+                }
+            }
 
+            // Mark the selected node as visited
+            visited[min_index] = true;
+
+            // Update forwarding table
+            for (auto& neighbor : topology[min_index]) {
+                int v = neighbor.first;
+                int cost = neighbor.second;
+                if (!visited[v] && min_cost + cost < costs[v]) {
+                    costs[v] = min_cost + cost;
+                    next_hop[v] = min_index == source ? v : min_index;
+                    forwarding_table[source][v] = {costs[v], next_hop[v]};
+                }
+            }
+        }
+    }
+
+    
+}
+
+
+/**
+ * @brief message function to output messages to the output file
+ * 
+ * @param filename The filename of messageFile (i.e. messageFile.txt)
+ * @param outFile An access point to outFile so this function can write to output.txt
+ * @param forwarding_table The complete forwarding table unordered map in form [source][destination] = pair(cost, next hop)  
+ * 
+ * @return void
+ * 
+*/
+void message(string filename, 
+            ofstream &outFile, 
+            unordered_map<int, unordered_map<int, pair<int, int>>> &forwarding_table){
+    /// File input for the messageFile
+    ifstream messageFile;
+	messageFile.open(filename); 
+	if (!messageFile) {
+        cerr << "Error: Unable to open messageFile!\n";
+		exit(0);
+    }
+
+    /// Initializing variables
+    int source, destination, cost, hops;
+    string line;
+
+    /// While there lines of data in messagefile 
+    while(getline(messageFile, line)){
+        /// First two values in the line are source and destination respectively 
+        stringstream ss(line);
+        if (!(ss >> source >> destination)) {
+            cerr << "Error reading source and destination!\n";
+            continue; // Skip to next iteration
+        }
+
+        /// The rest of the values in the line are the message string. Save that value to text.
+        string text;
+        getline(ss, text);
+        
+        /// Set values for cost and hops
+        cost = forwarding_table[source][destination].first;
+        hops = source; 
+        
+        /// If the cost is -999 therre is no way to access that node so return infinite hops
+        if(cost == -999){
+            outFile << "from " << source << " to " << destination << " cost infinite hops unreachable message" << text << endl;
+        }
+        else{
+            /// Write data to file 
+            outFile << "from " << source << " to " << destination << " cost " << cost << " hops " ; 
+        
+            /// Keep track of the intermediate hops taken to reach destination 
+            while(hops != destination){
+                outFile << hops << " "; 
+                hops = forwarding_table[hops][destination].second;
+            }
+        
+            /// Write the output message to the output.txt file 
+            outFile << "message" << text << endl;
+        }
+    }
+    messageFile.close(); /// Close file after reading
+}
 
 
 /**
  * @brief main function 
  * 
- * @param arcg argument count, indicating number of arguments passed from the command line
+ * @param argc argument count, indicating number of arguments passed from the command line
  * @param argv argument vector, pointing to an array of strings, each of which contains an argument passed from the command line
  * 
  * @return 0
  * 
 */
 int main(int argc, char** argv){
-	
-	/// Testing ReadTopology it works fine!
-	/*
-	readTopology("topologyFile.txt", topology);
-	
-	cout << "Topology:" << endl;
-    for (auto& node : topology) {
-        cout << "Node " << node.first << ":" << endl;
-        for (auto& neighbor : node.second) {
-            cout << "  -> Node " << neighbor.first << ", Weight: " << neighbor.second << endl;
-        }
-    }
-	*/
-	
 	if (argc != 4) {
-        printf("Usage: ./linkstate topofile messagefile changesfile\n");
-        return -1;
+        printf("usage: you need more args (try again)\n\n");
+        exit(1);
     }
 
 	string topologyfile = argv[1];
     string messagefile = argv[2];
     string changesfile = argv[3];
 
-	string outputfilename = "outputfile.txt";
+	// global topology information
+	unordered_map<int, unordered_map<int, int> > topology;
 
+	/// forwarding table
+	unordered_map<int, unordered_map<int, pair<int, int> > > forwarding_table; // src, des, nexthop? cost
 
-	/// Save initial topology to unordered_map
+	set<int> nodes;
+
+	//read from topology file
 	readTopology(topologyfile, topology, nodes);
 
-	/// Run Dijkstra's algorithm on all nodes and get forwarding tables
-	runAlgorithm(topology, forwardingTable, nodes);
 
-	/// Get topology changes
-	applyChanges(changesfile, topology, forwardingTable, messagefile, outputfilename);
+    decentralizedDijkstra(topology, forwarding_table, nodes);
 
-	/// Save output
+	 // Output forwarding tables to files
+    ofstream outFile("output.txt");
+    if (!outFile.is_open()) {
+        cerr << "Unable to open file for writing!" << endl;
+        return -1;
+    }
+
+    // Sort the entries in forwarding_table by source and destination
+    vector<pair<int, pair<int, int>>> sorted_sources;
+    for (auto& entry : forwarding_table) {
+        sorted_sources.emplace_back(entry.first, make_pair(0, 0));
+    }
+    sort(sorted_sources.begin(), sorted_sources.end());
+
+    for (auto& entry : sorted_sources) {
+    int source = entry.first;
+    	// Iterate over all possible destinations
+    	for (int destination : nodes) {
+			int cost, next_hop; 
+			cost = forwarding_table[source][destination].first;
+        	next_hop = forwarding_table[source][destination].second;
+
+            // debug outFile << "Node:" << source << " " << destination << " " << cost << " " << next_hop << endl;
+        	outFile << destination << " " << next_hop << " " << cost << endl;
+    	}
+	}
+
+    /// send message
+    message(messagefile, outFile, forwarding_table);
+
+    /// apply changes
+    ifstream changefile;
+
+	changefile.open(changesfile); 
+
+	if (!changefile) {
+        cerr << "Error: Unable to open file!\n";
+		exit(0);
+    }
+    int newSource, newDestination, newCost;
+    while (changefile >> newSource >> newDestination >> newCost){
+        if(newCost == -999){
+        topology[newSource].erase(newDestination);
+        topology[newDestination].erase(newSource);
+        }
+        else {
+        topology[newSource][newDestination] = newCost;
+        topology[newDestination][newSource] = newCost;
+        }
+        /// Check if source node exists in set
+		if (nodes.find(newSource) == nodes.end()) {
+			/// If it doesn't exist, insert into ordered set
+			nodes.insert(newSource);
+		}
+
+		/// Check if destination node exists in set
+		if (nodes.find(newDestination) == nodes.end()) {
+			/// If it doesn't exist, insert into ordered set
+			nodes.insert(newDestination);
+		}
+        
+        decentralizedDijkstra(topology, forwarding_table, nodes);
+
+        // Sort the entries in forwarding_table by source and destination
+        vector<pair<int, pair<int, int>>> sorted_sources;
+        for (auto& entry : forwarding_table) {
+            sorted_sources.emplace_back(entry.first, make_pair(0, 0));
+        }
+        sort(sorted_sources.begin(), sorted_sources.end());
+
+        for (auto& entry : sorted_sources) {
+        int source = entry.first;
+    	    // Iterate over all possible destinations
+    	    for (int destination : nodes) {
+			    int cost, next_hop; 
+			    cost = forwarding_table[source][destination].first;
+        	    next_hop = forwarding_table[source][destination].second;
+
+                // debug outFile << "Node:" << source << " " << destination << " " << cost << " " << next_hop << endl;
+        	    outFile << destination << " " << next_hop << " " << cost << endl;
+    	    }
+	    }
+
+        message(messagefile, outFile, forwarding_table);
+
+    }
 
 
+    outFile.close();
+    return 0;
 }
