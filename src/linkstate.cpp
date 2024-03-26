@@ -150,21 +150,22 @@ void tableSetup(unordered_map<int, unordered_map<int, int>> &topology,
 void decentralizedDijkstra(unordered_map<int, unordered_map<int, int>> &topology,
                            unordered_map<int, unordered_map<int, pair<int, int>>> &forwarding_table,
                            set<int> &nodes) {
-    //tableSetup(topology, forwarding_table, nodes);
 
     for (int source : nodes) {
-        // Initialize cost, visited, and next_hop arrays
+        /// Initialize cost, visited, and next_hop arrays
         unordered_map<int, int> costs;
         unordered_map<int, bool> visited;
         unordered_map<int, int> next_hop;
-        // Repeat through all nodes in topology and initialize cost, visited, and next_hop
+
+        /// Repeat through all nodes in topology and initialize cost, visited, and next_hop
         for (int node : nodes) {
             costs[node] = INT_MAX;
             visited[node] = false;
             next_hop[node] = -1;
 
+            /// Check if path is leading back to source and set cost to 0
             if(node == source){
-                // Initialize cost of source node
+                /// Initialize cost of source node
                 forwarding_table[source][node] = make_pair(0, source);
                 costs[source] = 0;
                 next_hop[source] = source; 
@@ -172,38 +173,37 @@ void decentralizedDijkstra(unordered_map<int, unordered_map<int, int>> &topology
         }
 
         for (int count = 0; count < nodes.size(); ++count) {
-            // Find the node with the minimum cost that has not been visited
+            /// Find the node with the minimum cost that has not been visited
             int min_cost = INT_MAX;
             int min_index = -1;
-            // Look for lowest cost path and update
+            /// Look for lowest cost path and update
             for (int v : nodes) {
                 if (!visited[v] && costs[v] < min_cost) {
-                    // Update new minimum cost and node if found
+                    /// Update new minimum cost and node if found
                     min_cost = costs[v];
                     min_index = v;
                 }
             }
 
-            // Mark the selected node as visited
+            /// Mark the selected node as visited
             visited[min_index] = true;
 
-            // Update costs and next hops of neighboring nodes (relaxation step)
+            /// Update costs and next hops of neighboring nodes (relaxation step)
             for (auto& neighbor : topology[min_index]) {
                 int v = neighbor.first;
                 int cost = neighbor.second;
-                // 
+                /// check if node has been visited
                 if (!visited[v]) {
                     if (min_cost + cost < costs[v]) {
+                        /// Update cost to node if lower than current min
                         costs[v] = min_cost + cost;
                         next_hop[v] = (min_index == source) ? v : next_hop[min_index];
+                        /// Update new next hop and cost on forwarding table
                         forwarding_table[source][v] = {costs[v], next_hop[v]};
                     }
                 }
             }
-
-    }
-
-    
+        }
     }
 }
 
@@ -299,20 +299,20 @@ int main(int argc, char** argv){
 
 	set<int> nodes;
 
-	//read from topology file
+	/// Read from topology file and save to data structure
 	readTopology(topologyfile, topology, nodes);
 
-
+    /// Run dijkstra's algorithm on all nodes
     decentralizedDijkstra(topology, forwarding_table, nodes);
 
-	 // Output forwarding tables to files
+	/// Output forwarding tables to files
     ofstream outFile("output.txt");
     if (!outFile.is_open()) {
         cerr << "Unable to open file for writing!" << endl;
         return -1;
     }
 
-    // Sort the entries in forwarding_table by source and destination
+    /// Sort the entries in forwarding_table by source and destination
     vector<pair<int, pair<int, int>>> sorted_sources;
     for (auto& entry : forwarding_table) {
         sorted_sources.emplace_back(entry.first, make_pair(0, 0));
@@ -327,7 +327,7 @@ int main(int argc, char** argv){
 			cost = forwarding_table[source][destination].first;
         	next_hop = forwarding_table[source][destination].second;
 
-            // debug outFile << "Node:" << source << " " << destination << " " << cost << " " << next_hop << endl;
+            // write to outFile << "Node:" << source << " " << destination << " " << cost << " " << next_hop << endl;
         	outFile << destination << " " << next_hop << " " << cost << endl;
     	}
 	}
@@ -337,20 +337,23 @@ int main(int argc, char** argv){
 
     /// apply changes
     ifstream changefile;
-
 	changefile.open(changesfile); 
 
+    /// Check if file was opened correctly
 	if (!changefile) {
         cerr << "Error: Unable to open file!\n";
 		exit(0);
     }
+    /// Apply new changes to topology
     int newSource, newDestination, newCost;
     while (changefile >> newSource >> newDestination >> newCost){
         if(newCost == -999){
+        /// Check if connection still remains
         topology[newSource].erase(newDestination);
         topology[newDestination].erase(newSource);
         }
         else {
+        /// Update link cost to new cost from changes
         topology[newSource][newDestination] = newCost;
         topology[newDestination][newSource] = newCost;
         }
@@ -366,6 +369,7 @@ int main(int argc, char** argv){
 			nodes.insert(newDestination);
 		}
         
+        /// Run Diijkstra's algorithm after changing topology
         decentralizedDijkstra(topology, forwarding_table, nodes);
 
         // Sort the entries in forwarding_table by source and destination
@@ -388,7 +392,8 @@ int main(int argc, char** argv){
     	    }
 	    }
 
-        message(messagefile, outFile, forwarding_table);
+    /// Send messages and write output to outputFile
+    message(messagefile, outFile, forwarding_table);
 
     }
 
