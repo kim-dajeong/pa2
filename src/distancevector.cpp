@@ -153,7 +153,7 @@ void decentralizedBellmanFord(unordered_map<int, unordered_map<int, int>> &topol
     tableSetup(topology, forwarding_table, nodes);
 	
 	/// Run Bellman Ford Size-1 Times
-	for(int i; i < nodes.size(); i++){
+	for(int i = 0; i < nodes.size(); i++){
 	/// Iterate over each node
     for (int node : nodes) {
         /// Iterate over each destination
