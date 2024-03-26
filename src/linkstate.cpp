@@ -138,10 +138,9 @@ void writeTopologyToFile(const unordered_map<int, unordered_map<int, int>>& topo
 
 
 void sendMessage(const string& messageFile, const unordered_map<int, unordered_map<int, unordered_map<int, pair<int, int>>>>& forwardingTable, const string& outputFile) {
-    
-	ifstream inFile(messageFile);
+    ifstream inFile(messageFile);
     ofstream outFile(outputFile);
-    
+
     if (!inFile.is_open()) {
         cerr << "Error: Unable to open input file " << messageFile << endl;
         return;
@@ -154,6 +153,7 @@ void sendMessage(const string& messageFile, const unordered_map<int, unordered_m
 
     string line;
     while (getline(inFile, line)) {
+
         stringstream ss(line);
         int source, destination;
         string message;
@@ -179,7 +179,7 @@ void sendMessage(const string& messageFile, const unordered_map<int, unordered_m
             path.push_back(current);
         }
 
-		if(cost == -999){
+        if(cost == -999) {
             outFile << "from " << source << " to " << destination << " cost infinite hops unreachable message " << message << endl;
             break;
         }
@@ -195,6 +195,7 @@ void sendMessage(const string& messageFile, const unordered_map<int, unordered_m
     inFile.close();
     outFile.close();
 }
+
 
 /// Read from the topology file and save information to unordered_map topology and ordered_set nodes
 void readTopology(string filename, unordered_map<int, unordered_map<int, int>>&topology, set<int>&nodes){
@@ -260,8 +261,6 @@ void runAlgorithm(unordered_map<int, unordered_map<int, int> > &topology, unorde
 }
 
 
-
-
 /// apply changes from changesfile and redo calculations
 void applyChanges(string changesfile, unordered_map<int, unordered_map<int, int>>& topology, unordered_map<int, unordered_map<int, unordered_map<int, pair<int, int>>>> &forwardingTable, string &messagefile, string& outputfilename) {
 
@@ -325,7 +324,6 @@ int main(int argc, char** argv){
     string changesfile = argv[3];
 
 	string outputfilename = "outputfile.txt";
-
 
 
 	/// Save initial topology to unordered_map
