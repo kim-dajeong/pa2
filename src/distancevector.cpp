@@ -1,14 +1,13 @@
 /**
- * @file distancevector.cpp
- *  @brief 
+ *  @file distancevector.cpp
+ *  @brief Uses distance vector routing protocol to update a forwarding table. 
  *
  *  @author Ana Bandari (anabandari)
  *  @author Dajeong Kim (dkim2)
  * 
- *  @bug 
+ *  @bug None known at this time. 
  * 
  */
-
 
 /*   Includes   */
 #include <iostream>
@@ -24,37 +23,29 @@
 
 using namespace std;
 
+/// Setting infinity to be some arbitrarily large number 
 #define inf 2000000000
 
-/* Algorithm:
-	- Read from topology file
-	- Place into a datastructure
-	- only read from forwarding tables of neighbours and cycle through them multiple times
-	- Use an algorithm to get information out of the datastructure to place in forwarding table
-	- Implement changes to the existing topology
-*/
-
 /**
- * @brief main function 
+ * @brief Reads from the topology file and writes it to an unordered map and a set of nodes for easy reference
  * 
- * @param 
- * @param 
+ * @param filename The name of the topology file i.e. "topologyFile.txt"
+ * @param topology Topology map, an unordered map containing information from the topologyFile for easy reference
+ * @param nodes A set of all the nodes present in the network
  * 
- * @return 0
+ * @return void
  * 
 */
-/// Read from the topology file and save information to unordered_map topology and ordered_set nodes
 void readTopology(string filename, unordered_map<int, unordered_map<int, int>>&topology, set<int>&nodes){
-
+    /// File input setup
 	ifstream topologyFile;
-
 	topologyFile.open(filename); 
-
 	if (!topologyFile) {
         cerr << "Error: Unable to open file!\n";
 		exit(0);
     }
 
+    /// Initializing variable names
 	int source, destination, cost;
 
 	/// Iterate through all lines in topologyFile and read for source, destination, and cost
@@ -83,49 +74,62 @@ void readTopology(string filename, unordered_map<int, unordered_map<int, int>>&t
 
 }
 
-///FILL THIS OUT LATER!!!!! 
+
 /**
- * @brief main function 
+ * @brief Function to check if a direct connection between source and destination exists 
  * 
- * @param arcg argument count, indicating number of arguments passed from the command line
- * @param argv argument vector, pointing to an array of strings, each of which contains an argument passed from the command line
+ * @param source Value of source node
+ * @param destination  Value of destination node 
+ * @param topology Topology map
  * 
- * @return 0
+ * @return boolean true or false 
  * 
 */
-// Function to check if a connection exists in the topology
-bool connectionExists(int source, int destination, unordered_map<int, unordered_map<int, int>>&topology) {
+bool connectionExists(int source, int destination, unordered_map<int, unordered_map<int, int>>&topology){
+    /// Find source in the topology
     auto i = topology.find(source);
+    
+    /// If source not found return false 
     if (i != topology.end()) {
+        /// Find destination in the topology
         auto j = i->second.find(destination);
-        if (j != i->second.end()) {
-            return true; // Connection exists
+        /// If destination not found return false 
+        if (j != i->second.end()){
+            /// Source and destination have a direct connection 
+            return true;
         }
     }
-    return false; // Connection does not exist
+    return false; 
 }
 
-///FILL THIS OUT LATER!!!!! 
 /**
- * @brief main function 
+ * @brief Initialize the forwarding table with known information from the topology file
  * 
- * @param arcg argument count, indicating number of arguments passed from the command line
- * @param argv argument vector, pointing to an array of strings, each of which contains an argument passed from the command line
+ * @param topology Topology map [source][destination] = cost
+ * @param forwarding_table Forwarding table [source][destination] = pair(cost, next hop)
+ * @param nodes Set of all nodes active in the topology
  * 
- * @return 0
+ * @return void
  * 
 */
-// Function to setup initial forwarding tables
-void tableSetup(unordered_map<int, unordered_map<int, int>> &topology, unordered_map<int, unordered_map<int, pair<int, int>>> &forwarding_table, set<int> &nodes) {
-    // Iterate over each node
+void tableSetup(unordered_map<int, unordered_map<int, int>> &topology, 
+                unordered_map<int, unordered_map<int, pair<int, int>>> &forwarding_table, 
+                set<int> &nodes) {
+    /// Iterate over each node
     for (int source : nodes) {
+        /// Iterate over each destination
         for (int destination : nodes) {
+            /// If the source is equal to the destination set the cost to be 0 and next hop to be the node itself 
             if (source == destination) {
                 forwarding_table[source][destination] = make_pair(0, destination); // Set direct connection cost to 0 and next hop to destination
-            } else {
+            } 
+            /// Otherwise check if a direct connection to a neighbour exists. If not set the cost to infinity and the next hop to -999 (disconnected)
+            else {
                 if (!connectionExists(source, destination, topology)) {
                     forwarding_table[source][destination] = make_pair(inf, -999); // Set non-existent connection cost to infinity and next hop to -999
-                } else {
+                } 
+                /// Update the forwarding table for the direct neighbours 
+                else {
                     forwarding_table[source][destination] = make_pair(topology[source][destination], destination); // Give cost to nodes with a connection and set next hop
                 }
             }
@@ -133,17 +137,16 @@ void tableSetup(unordered_map<int, unordered_map<int, int>> &topology, unordered
     }
 }
 
-///FILL THIS OUT LATER!!!!! 
 /**
- * @brief main function 
+ * @brief Running a decentralized Bellman-Ford Algorithm as the main part of calculating the routing table for a distance vector protocol 
  * 
- * @param arcg argument count, indicating number of arguments passed from the command line
- * @param argv argument vector, pointing to an array of strings, each of which contains an argument passed from the command line
+ * @param topology The total topology of the system collected from the topologyFile 
+ * @param forwarding_table Forwarding table data structure, The forwarding table is as follows: [source][destination] = pair(cost, next hop) 
+ * @param nodes A set of all possible nodes in the topology 
  * 
- * @return 0
+ * @return void 
  * 
 */
-// Decentralized Bellman-Ford algorithm
 void decentralizedBellmanFord(unordered_map<int, unordered_map<int, int>> &topology,
                               unordered_map<int, unordered_map<int, pair<int, int>>> &forwarding_table,
                               set<int> &nodes) {
@@ -151,23 +154,23 @@ void decentralizedBellmanFord(unordered_map<int, unordered_map<int, int>> &topol
 	
 	/// Run Bellman Ford Size-1 Times
 	for(int i; i < nodes.size(); i++){
-	// Iterate over each node
+	/// Iterate over each node
     for (int node : nodes) {
-        // Iterate over each destination
+        /// Iterate over each destination
         for (int destination : nodes) {
             int cost = inf;
             int nexthop = -1;
 
-            // Check if direct link exists from node to destination
+            /// Check if direct link exists from node to destination
             if (topology.find(node) != topology.end() && topology.at(node).find(destination) != topology.at(node).end()) {
                 cost = topology.at(node).at(destination);
                 nexthop = destination;
             }
 
-            // Iterate over neighbors to find better paths
+            /// Iterate over neighbors to find better paths
             for (int neighbor : nodes) {
                 if (topology.find(node) != topology.end() && topology.at(node).find(neighbor) != topology.at(node).end()) {
-                    // Check if the neighbor has a route to the destination
+                    /// Check if the neighbor has a route to the destination
                     if (forwarding_table.find(neighbor) != forwarding_table.end() &&
                         forwarding_table.at(neighbor).find(destination) != forwarding_table.at(neighbor).end()) {
                         int temp = topology.at(node).at(neighbor) + forwarding_table.at(neighbor).at(destination).first;
@@ -180,7 +183,7 @@ void decentralizedBellmanFord(unordered_map<int, unordered_map<int, int>> &topol
             }
 
             if(node != destination){
-            // Update forwarding table entry
+            /// Update forwarding table entry
             forwarding_table[node][destination] = make_pair(cost, nexthop);
             }
         }
@@ -188,20 +191,20 @@ void decentralizedBellmanFord(unordered_map<int, unordered_map<int, int>> &topol
 	}
 }
 
-// FILL OUT LATER!!!!!!!!
 /**
- * @brief main function 
+ * @brief message function to output messages to the output file
  * 
- * @param arcg argument count, indicating number of arguments passed from the command line
- * @param argv argument vector, pointing to an array of strings, each of which contains an argument passed from the command line
+ * @param filename The filename of messageFile (i.e. messageFile.txt)
+ * @param outFile An access point to outFile so this function can write to output.txt
+ * @param forwarding_table The complete forwarding table unordered map in form [source][destination] = pair(cost, next hop)  
  * 
- * @return 0
+ * @return void
  * 
 */
 void message(string filename, 
             ofstream &outFile, 
             unordered_map<int, unordered_map<int, pair<int, int>>> &forwarding_table){
-    
+    /// File input for the messageFile
     ifstream messageFile;
 	messageFile.open(filename); 
 	if (!messageFile) {
@@ -209,44 +212,53 @@ void message(string filename,
 		exit(0);
     }
 
+    /// Initializing variables
     int source, destination, cost, hops;
     string line;
+
+    /// While there lines of data in messagefile 
     while(getline(messageFile, line)){
+        /// First two values in the line are source and destination respectively 
         stringstream ss(line);
         if (!(ss >> source >> destination)) {
             cerr << "Error reading source and destination!\n";
             continue; // Skip to next iteration
         }
+
+        /// The rest of the values in the line are the message string. Save that value to text.
         string text;
         getline(ss, text);
         
+        /// Set values for cost and hops
         cost = forwarding_table[source][destination].first;
         hops = source; 
         
+        /// If the cost is -999 therre is no way to access that node so return infinite hops
         if(cost == -999){
             outFile << "from " << source << " to " << destination << " cost infinite hops unreachable message" << text << endl;
         }
+        else{
+            /// Write data to file 
+            outFile << "from " << source << " to " << destination << " cost " << cost << " hops " ; 
         
-        //implement hops!
-
-        outFile << "from " << source << " to " << destination << " cost " << cost << " hops " ; 
+            /// Keep track of the intermediate hops taken to reach destination 
+            while(hops != destination){
+                outFile << hops << " "; 
+                hops = forwarding_table[hops][destination].second;
+            }
         
-        while(hops != destination){
-            outFile << hops << " "; 
-            hops = forwarding_table[hops][destination].second;
+            /// Write the output message to the output.txt file 
+            outFile << "message" << text << endl;
         }
-        
-        outFile << "message" << text << endl;
-        
     }
-    messageFile.close(); // Close file after reading
+    messageFile.close(); /// Close file after reading
 }
 
 
 /**
  * @brief main function 
  * 
- * @param arcg argument count, indicating number of arguments passed from the command line
+ * @param argc argument count, indicating number of arguments passed from the command line
  * @param argv argument vector, pointing to an array of strings, each of which contains an argument passed from the command line
  * 
  * @return 0

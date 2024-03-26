@@ -196,8 +196,16 @@ void sendMessage(const string& messageFile, const unordered_map<int, unordered_m
     outFile.close();
 }
 
-
-/// Read from the topology file and save information to unordered_map topology and ordered_set nodes
+/**
+ * @brief Reads from the topology file and writes it to an unordered map and a set of nodes for easy reference
+ * 
+ * @param filename The name of the topology file i.e. "topologyFile.txt"
+ * @param topology Topology map, an unordered map containing information from the topologyFile for easy reference
+ * @param nodes A set of all the nodes present in the network
+ * 
+ * @return void
+ * 
+*/
 void readTopology(string filename, unordered_map<int, unordered_map<int, int>>&topology, set<int>&nodes){
 
 	ifstream topologyFile;
